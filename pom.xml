@@ -19,7 +19,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>template-application</module>
+        <module>front</module>
     </modules>
 
     <properties>
