@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: account-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bank
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        default_schema: accounts
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 8082
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health, info
+#  endpoint:
+#    health:
+#      show-details: always
