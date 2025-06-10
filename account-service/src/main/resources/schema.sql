@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS accounts.users
     id UUID PRIMARY KEY,
     login VARCHAR(16) NOT NULL UNIQUE,
     password_hash VARCHAR(16) NOT NULL,
-    full_name VARCHAR(32) NOT NULL,
+    name VARCHAR(32) NOT NULL,
     birthdate DATE NOT NULL,
     CONSTRAINT LOGIN_UNIQUE UNIQUE (LOGIN)
 );

@@ -1,0 +1,16 @@
+package ru.yandex.practicum.bank.front.mapper;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+import ru.yandex.practicum.bank.front.dto.UserDto;
+import ru.yandex.practicum.bank.front.service.user.AppUserDetails;
+
+
+@Mapper
+public interface UserMapper {
+
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+
+    AppUserDetails toAppUser(UserDto userDto);
+
+}

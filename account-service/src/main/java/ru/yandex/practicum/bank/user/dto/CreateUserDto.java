@@ -30,7 +30,7 @@ public class CreateUserDto {
 
     @NotNull
     @Length(min = 5, max = 32)
-    private String fullName;
+    private String name;
 
     @NotNull
     @IsBirthdayOfAdult

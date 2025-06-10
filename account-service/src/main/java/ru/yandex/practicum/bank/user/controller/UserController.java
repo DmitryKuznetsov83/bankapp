@@ -49,7 +49,7 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> getUsers() {
+    public List<String> getUsers() {
         return userService.getUsers();
     }
 

@@ -2,7 +2,7 @@ package ru.yandex.practicum.bank.user.exception;
 
 public class PasswordIsSameAsPreviousException extends RuntimeException {
 
-    public PasswordIsSameAsPreviousException(String login) {
+    public PasswordIsSameAsPreviousException() {
         super("Пароль совпадает с предыдущим");
     }
 

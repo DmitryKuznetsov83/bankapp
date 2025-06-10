@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.user.dto;
+package ru.yandex.practicum.bank.front.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,10 +20,4 @@ public class ApiErrorDto {
     private String status;
     private String timestamp;
 
-    public ApiErrorDto(Throwable exception, HttpStatus status) {
-        this.exception = exception.getClass().getSimpleName();
-        this.message = exception.getMessage();
-        this.status = status.toString();
-        this.timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
-    }
 }

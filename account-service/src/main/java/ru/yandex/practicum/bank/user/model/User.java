@@ -24,7 +24,7 @@ public class User {
     private UUID id;
     private String login;
     private String passwordHash;
-    private String fullName;
+    private String name;
     private LocalDate birthdate;
     private Instant createdAt;
     private Instant updatedAt;
