@@ -6,7 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.user.dto.*;
-import ru.yandex.practicum.bank.user.exception.*;
+import ru.yandex.practicum.bank.user.dto.user.CreateUserDto;
+import ru.yandex.practicum.bank.user.dto.user.UpdateUserDto;
+import ru.yandex.practicum.bank.user.dto.user.UpdateUserPasswordDto;
+import ru.yandex.practicum.bank.user.dto.user.UserDto;
+import ru.yandex.practicum.bank.user.exception.user.*;
 import ru.yandex.practicum.bank.user.service.UserService;
 
 import java.util.List;
@@ -71,12 +75,6 @@ public class UserController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrorDto handlePasswordAndConfirmationDoNotMatchException(final PasswordAndConfirmationDoNotMatchException exception) {
         return GlobalExceptionHandler.getApiError(exception, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler({UserAccountNotFoundException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiErrorDto handleUserAccountNotFoundException(final UserAccountNotFoundException exception) {
-        return GlobalExceptionHandler.getApiError(exception, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler({PasswordIsSameAsPreviousException.class})

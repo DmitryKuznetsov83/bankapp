@@ -5,7 +5,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
-import ru.yandex.practicum.bank.front.dto.UserDto;
+import ru.yandex.practicum.bank.front.dto.user.UserDto;
 import ru.yandex.practicum.bank.front.mapper.UserMapper;
 
 public class UserDetailsServiceImpl implements UserDetailsService {

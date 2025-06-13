@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.user.dto;
+package ru.yandex.practicum.bank.user.dto.user;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

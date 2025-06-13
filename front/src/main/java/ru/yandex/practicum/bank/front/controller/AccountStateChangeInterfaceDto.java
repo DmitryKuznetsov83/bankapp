@@ -1,19 +1,15 @@
-package ru.yandex.practicum.bank.front.dto;
+package ru.yandex.practicum.bank.front.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateUserDto {
-
-    private String name;
-    private LocalDate birthdate;
-
+public class AccountStateChangeInterfaceDto {
+    private String currency;
+    private boolean active;
 }

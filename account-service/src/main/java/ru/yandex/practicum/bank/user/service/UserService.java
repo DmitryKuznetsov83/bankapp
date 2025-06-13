@@ -1,9 +1,9 @@
 package ru.yandex.practicum.bank.user.service;
 
-import ru.yandex.practicum.bank.user.dto.CreateUserDto;
-import ru.yandex.practicum.bank.user.dto.UpdateUserDto;
-import ru.yandex.practicum.bank.user.dto.UpdateUserPasswordDto;
-import ru.yandex.practicum.bank.user.dto.UserDto;
+import ru.yandex.practicum.bank.user.dto.user.CreateUserDto;
+import ru.yandex.practicum.bank.user.dto.user.UpdateUserDto;
+import ru.yandex.practicum.bank.user.dto.user.UpdateUserPasswordDto;
+import ru.yandex.practicum.bank.user.dto.user.UserDto;
 
 import java.util.List;
 

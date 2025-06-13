@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.user.dto;
+package ru.yandex.practicum.bank.front.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

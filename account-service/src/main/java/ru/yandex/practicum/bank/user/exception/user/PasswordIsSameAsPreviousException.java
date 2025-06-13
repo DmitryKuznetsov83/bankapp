@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.user.exception;
+package ru.yandex.practicum.bank.user.exception.user;
 
 public class PasswordIsSameAsPreviousException extends RuntimeException {
 

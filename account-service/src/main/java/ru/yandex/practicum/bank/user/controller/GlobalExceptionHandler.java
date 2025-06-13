@@ -7,9 +7,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.bank.user.dto.ApiErrorDto;
+import ru.yandex.practicum.bank.user.exception.user.UserAccountNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler({UserAccountNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiErrorDto handleUserAccountNotFoundException(final UserAccountNotFoundException exception) {
+        return GlobalExceptionHandler.getApiError(exception, HttpStatus.NOT_FOUND);
+    }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -29,7 +36,7 @@ public class GlobalExceptionHandler {
         return getApiError(exception, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    protected static ApiErrorDto getApiError(Throwable exception, HttpStatus httpStatus) {
+    public static ApiErrorDto getApiError(Throwable exception, HttpStatus httpStatus) {
         return new ApiErrorDto(exception, httpStatus);
     }
 

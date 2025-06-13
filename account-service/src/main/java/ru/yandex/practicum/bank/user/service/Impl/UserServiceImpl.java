@@ -1,19 +1,20 @@
-package ru.yandex.practicum.bank.user.service;
+package ru.yandex.practicum.bank.user.service.Impl;
 
-import jakarta.transaction.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.bank.user.dto.CreateUserDto;
-import ru.yandex.practicum.bank.user.dto.UpdateUserDto;
-import ru.yandex.practicum.bank.user.dto.UpdateUserPasswordDto;
-import ru.yandex.practicum.bank.user.dto.UserDto;
-import ru.yandex.practicum.bank.user.exception.LoginAlreadyUsedException;
-import ru.yandex.practicum.bank.user.exception.PasswordAndConfirmationDoNotMatchException;
-import ru.yandex.practicum.bank.user.exception.PasswordIsSameAsPreviousException;
-import ru.yandex.practicum.bank.user.exception.UserAccountNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
+import ru.yandex.practicum.bank.user.dto.user.CreateUserDto;
+import ru.yandex.practicum.bank.user.dto.user.UpdateUserDto;
+import ru.yandex.practicum.bank.user.dto.user.UpdateUserPasswordDto;
+import ru.yandex.practicum.bank.user.dto.user.UserDto;
+import ru.yandex.practicum.bank.user.exception.user.LoginAlreadyUsedException;
+import ru.yandex.practicum.bank.user.exception.user.PasswordAndConfirmationDoNotMatchException;
+import ru.yandex.practicum.bank.user.exception.user.PasswordIsSameAsPreviousException;
+import ru.yandex.practicum.bank.user.exception.user.UserAccountNotFoundException;
 import ru.yandex.practicum.bank.user.mapper.UserMapper;
 import ru.yandex.practicum.bank.user.model.User;
 import ru.yandex.practicum.bank.user.repository.UserJpaRepository;
+import ru.yandex.practicum.bank.user.service.UserService;
 
 import java.util.List;
 
@@ -62,6 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateUserPassword(String login, UpdateUserPasswordDto updateUserPasswordDto) {
         if (!updateUserPasswordDto.getPassword().equals(updateUserPasswordDto.getConfirmPassword())) {
             throw new PasswordAndConfirmationDoNotMatchException(login);
@@ -77,6 +79,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(String login) {
         User user = userJpaRepository.findByLogin(login)
                 .orElseThrow(() -> new UserAccountNotFoundException(login));
@@ -84,6 +87,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDto getUser(String login) {
         return UserMapper.INSTANCE.toUserDto(userJpaRepository
                 .findByLogin(login)
@@ -91,6 +95,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<String> getUsers() {
         return userJpaRepository.findAll()
                 .stream()

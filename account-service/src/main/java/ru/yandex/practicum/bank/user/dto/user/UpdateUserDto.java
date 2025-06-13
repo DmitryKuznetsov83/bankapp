@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.user.dto;
+package ru.yandex.practicum.bank.user.dto.user;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -6,19 +6,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
+import ru.yandex.practicum.bank.user.annotation.IsBirthdayOfAdult;
+
+import java.time.LocalDate;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateUserPasswordDto {
+public class UpdateUserDto {
 
     @NotNull
-    @Length(min = 5, max = 16)
-    private String password;
+    @Length(min = 5, max = 32)
+    private String name;
 
     @NotNull
-    @Length(min = 5, max = 16)
-    private String confirmPassword;
+    @IsBirthdayOfAdult
+    private LocalDate birthdate;
 
 }

@@ -1,32 +1,37 @@
 package ru.yandex.practicum.bank.front.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.util.PropertySource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yandex.practicum.bank.front.dto.*;
-import ru.yandex.practicum.bank.front.mapper.UserMapper;
+import ru.yandex.practicum.bank.front.dto.account.AccountDto;
+import ru.yandex.practicum.bank.front.dto.account.AccountsChangeRequestDto;
+import ru.yandex.practicum.bank.front.dto.user.CreateUserDto;
+import ru.yandex.practicum.bank.front.dto.user.UpdateUserDto;
+import ru.yandex.practicum.bank.front.dto.user.UpdateUserPasswordDto;
+import ru.yandex.practicum.bank.front.dto.user.UserDto;
+import ru.yandex.practicum.bank.front.enums.AccountState;
+import ru.yandex.practicum.bank.front.enums.Currency;
 import ru.yandex.practicum.bank.front.service.user.AppUserDetails;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class MainController {
@@ -43,9 +48,40 @@ public class MainController {
 
     @GetMapping("/main")
     public String getMainPage(Model model, @AuthenticationPrincipal AppUserDetails appUserDetails) {
+        // user
         model.addAttribute("login", appUserDetails.getUsername());
         model.addAttribute("name", appUserDetails.getName());
         model.addAttribute("birthdate", appUserDetails.getBirthdate());
+
+        // accounts
+        try {
+            List<AccountDto> accountDtos = restClient
+                    .get()
+                    .uri("http://localhost:8082/accounts/"+appUserDetails.getUsername())
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<AccountDto>>() {});
+            List<AccountRepresentation> list = accountDtos.stream()
+                    .map(a -> new AccountRepresentation(a.getCurrency(), a.getState(), a.getBalance()))
+                    .toList();
+            Map<Currency, AccountRepresentation> collect = list.stream().collect(Collectors.toMap(l -> l.getCurrency(), l -> l));
+
+            Arrays.stream(Currency.values()).forEach(c -> {
+                if (!collect.containsKey(c)) {
+                    collect.put(c, new AccountRepresentation(c, AccountState.NOT_EXISTS, BigDecimal.ZERO));
+                }
+            });
+
+            List<AccountRepresentation> accountRepresentations = new ArrayList<>(collect.values());
+            accountRepresentations.sort(Comparator.comparing(
+                    AccountRepresentation::getCurrency,
+                    Comparator.comparingInt(Enum::ordinal)));
+            model.addAttribute("accountRepresentations", accountRepresentations);
+
+        } catch (HttpClientErrorException e) {
+            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
+            model.addAttribute("userAccountsErrors", List.of(apiErrorDto.getMessage()));
+        }
+
         return "main";
     }
 
@@ -123,5 +159,30 @@ public class MainController {
 
         return "redirect:/main";
     }
+
+    @PostMapping("/accounts/changeState")
+    public String changeAccountsState(@AuthenticationPrincipal AppUserDetails appUserDetails,
+                                      Model model,
+                                      @ModelAttribute AccountStateChangeForm form,
+                                      RedirectAttributes redirectAttributes) {
+
+        List<AccountStateChangeInterfaceDto> accountsIner = form.getAccounts();
+        Stream<AccountsChangeRequestDto> accounts = accountsIner.stream().map(q -> new AccountsChangeRequestDto(q.isActive(), q.getCurrency()));
+
+        try {
+            restClient
+                    .post()
+                    .uri("http://localhost:8082/accounts/" + appUserDetails.getLogin())
+                    .body(accounts)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<AccountDto>>() {});
+        } catch (HttpClientErrorException e) {
+            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
+            redirectAttributes.addFlashAttribute("userAccountsErrors", List.of(apiErrorDto.getMessage()));
+        }
+
+        return "redirect:/main";
+    }
+
 
 }

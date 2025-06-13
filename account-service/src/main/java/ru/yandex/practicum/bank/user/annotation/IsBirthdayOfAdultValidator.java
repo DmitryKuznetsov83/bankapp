@@ -2,7 +2,7 @@ package ru.yandex.practicum.bank.user.annotation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import ru.yandex.practicum.bank.user.exception.UserNotIsOfLegalAgeException;
+import ru.yandex.practicum.bank.user.exception.user.UserNotIsOfLegalAgeException;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
