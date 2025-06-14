@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import ru.yandex.practicum.bank.exchange.config.ExchangeGeneratorConfig;
-import ru.yandex.practicum.bank.exchange.dto.CurrencyRate;
+import ru.yandex.practicum.bank.exchange.dto.CurrencyRateDto;
 import ru.yandex.practicum.bank.exchange.enums.Currency;
 
 import java.math.BigDecimal;
@@ -31,11 +31,11 @@ public class ScheduledTaskService {
 
     @Scheduled(fixedRate = 1000)
     public void executeEverySecond() {
-        List<CurrencyRate> rates = new ArrayList<>();
+        List<CurrencyRateDto> rates = new ArrayList<>();
         Arrays.stream(Currency.values()).forEach(currency -> {
             Optional<BigDecimal> maybeRate = generateRate(currency);
             if (maybeRate.isPresent()) {
-                rates.add(new CurrencyRate(currency, maybeRate.get()));
+                rates.add(new CurrencyRateDto(currency, maybeRate.get()));
             }
         });
 
@@ -43,7 +43,7 @@ public class ScheduledTaskService {
         try {
             restClient
                     .post()
-                    .uri("http://localhost:8084/rates/")
+                    .uri("http://localhost:8084/rates")
                     .body(rates)
                     .retrieve()
                     .toBodilessEntity();

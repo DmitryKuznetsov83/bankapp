@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.yandex.practicum.bank.exchange.enums.Currency;
 
 import java.math.BigDecimal;
 
@@ -12,9 +11,10 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CurrencyRate {
+public class CurrencyRateView {
 
-    private Currency currencyCode;
+    private String currencyTitle;
+    private String currencyName;
     private BigDecimal rate;
 
 }
