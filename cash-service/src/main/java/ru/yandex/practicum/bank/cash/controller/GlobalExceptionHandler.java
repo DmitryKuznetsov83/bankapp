@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.user.controller;
+package ru.yandex.practicum.bank.cash.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -6,24 +6,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.bank.user.dto.ApiErrorDto;
-import ru.yandex.practicum.bank.user.exception.account.AccountNotFoundException;
-import ru.yandex.practicum.bank.user.exception.user.UserNotFoundException;
+import ru.yandex.practicum.bank.cash.dto.ApiErrorDto;
+import ru.yandex.practicum.bank.cash.exception.UnsuccessfulTransactionException;
+
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    @ExceptionHandler({UserNotFoundException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiErrorDto handleUserNotFoundException(final UserNotFoundException exception) {
-        return GlobalExceptionHandler.getApiError(exception, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler({AccountNotFoundException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ApiErrorDto handleAccountNotFoundException(final AccountNotFoundException exception) {
-        return GlobalExceptionHandler.getApiError(exception, HttpStatus.NOT_FOUND);
-    }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -37,6 +25,12 @@ public class GlobalExceptionHandler {
         return getApiError(exception, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler({UnsuccessfulTransactionException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiErrorDto handleUnsuccessfulTransactionException(final UnsuccessfulTransactionException exception) {
+        return getApiError(exception, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler({Throwable.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiErrorDto handleThrowable(final Throwable exception) {
@@ -46,6 +40,5 @@ public class GlobalExceptionHandler {
     public static ApiErrorDto getApiError(Throwable exception, HttpStatus httpStatus) {
         return new ApiErrorDto(exception, httpStatus);
     }
-
 
 }

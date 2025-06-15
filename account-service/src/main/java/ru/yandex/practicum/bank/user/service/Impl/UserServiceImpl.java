@@ -10,7 +10,7 @@ import ru.yandex.practicum.bank.user.dto.user.UserDto;
 import ru.yandex.practicum.bank.user.exception.user.LoginAlreadyUsedException;
 import ru.yandex.practicum.bank.user.exception.user.PasswordAndConfirmationDoNotMatchException;
 import ru.yandex.practicum.bank.user.exception.user.PasswordIsSameAsPreviousException;
-import ru.yandex.practicum.bank.user.exception.user.UserAccountNotFoundException;
+import ru.yandex.practicum.bank.user.exception.user.UserNotFoundException;
 import ru.yandex.practicum.bank.user.mapper.UserMapper;
 import ru.yandex.practicum.bank.user.model.User;
 import ru.yandex.practicum.bank.user.repository.UserJpaRepository;
@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto updateUser(String login, UpdateUserDto updateUserDto) {
         User user = userJpaRepository.findByLogin(login)
-                .orElseThrow(() -> new UserAccountNotFoundException(login));
+                .orElseThrow(() -> new UserNotFoundException(login));
         user.setName(updateUserDto.getName());
         user.setBirthdate(updateUserDto.getBirthdate());
         User savedUser = userJpaRepository.save(user);
@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
             throw new PasswordAndConfirmationDoNotMatchException(login);
         }
         User user = userJpaRepository.findByLogin(login)
-                .orElseThrow(() -> new UserAccountNotFoundException(login));
+                .orElseThrow(() -> new UserNotFoundException(login));
         if (user.getPasswordHash().equals(updateUserPasswordDto.getPassword())) {
             throw new PasswordIsSameAsPreviousException();
         }
@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUser(String login) {
         User user = userJpaRepository.findByLogin(login)
-                .orElseThrow(() -> new UserAccountNotFoundException(login));
+                .orElseThrow(() -> new UserNotFoundException(login));
         userJpaRepository.deleteById(user.getId());
     }
 
@@ -91,7 +91,7 @@ public class UserServiceImpl implements UserService {
     public UserDto getUser(String login) {
         return UserMapper.INSTANCE.toUserDto(userJpaRepository
                 .findByLogin(login)
-                .orElseThrow(() -> new UserAccountNotFoundException(login)));
+                .orElseThrow(() -> new UserNotFoundException(login)));
     }
 
     @Override

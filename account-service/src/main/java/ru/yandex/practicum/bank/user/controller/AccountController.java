@@ -8,6 +8,7 @@ import ru.yandex.practicum.bank.user.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.user.dto.account.AccountsChangeRequestDto;
 import ru.yandex.practicum.bank.user.dto.account.AccountDto;
 import ru.yandex.practicum.bank.user.exception.account.AccountClosingException;
+import ru.yandex.practicum.bank.user.exception.account.InsufficientFundsException;
 import ru.yandex.practicum.bank.user.service.AccountService;
 
 import java.util.List;

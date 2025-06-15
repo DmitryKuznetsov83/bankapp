@@ -1,7 +1,6 @@
 package ru.yandex.practicum.bank.front.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.util.PropertySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,13 +12,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yandex.practicum.bank.front.dto.*;
 import ru.yandex.practicum.bank.front.dto.account.AccountDto;
 import ru.yandex.practicum.bank.front.dto.account.AccountsChangeRequestDto;
+import ru.yandex.practicum.bank.front.dto.transaction.CreateCashTransactionDto;
 import ru.yandex.practicum.bank.front.dto.user.CreateUserDto;
 import ru.yandex.practicum.bank.front.dto.user.UpdateUserDto;
 import ru.yandex.practicum.bank.front.dto.user.UpdateUserPasswordDto;
@@ -81,6 +80,8 @@ public class MainController {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
             model.addAttribute("userAccountsErrors", List.of(apiErrorDto.getMessage()));
         }
+
+        model.addAttribute("currency", Currency.values());
 
         return "main";
     }
@@ -184,5 +185,29 @@ public class MainController {
         return "redirect:/main";
     }
 
+    @PostMapping("/user/cash")
+    public String processCashTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
+                                      Model model,
+                                      @ModelAttribute CreateCashTransactionDto createCashTransactionDto,
+                                      RedirectAttributes redirectAttributes) {
+
+        createCashTransactionDto.setUserLogin(appUserDetails.getLogin());
+
+        try {
+            restClient
+                    .post()
+                    .uri("http://localhost:8085/cash-transactions")
+                    .body(createCashTransactionDto)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException e) {
+            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
+            redirectAttributes.addFlashAttribute("cashErrors", List.of(apiErrorDto.getMessage()));
+        } catch (Throwable e) {
+            redirectAttributes.addFlashAttribute("cashErrors", List.of("Сервис недоступен"));
+        }
+
+        return "redirect:/main";
+    }
 
 }

@@ -10,7 +10,7 @@ import ru.yandex.practicum.bank.user.enums.AccountState;
 import ru.yandex.practicum.bank.user.enums.AccountStateChangeRequest;
 import ru.yandex.practicum.bank.user.enums.Currency;
 import ru.yandex.practicum.bank.user.exception.account.AccountClosingException;
-import ru.yandex.practicum.bank.user.exception.user.UserAccountNotFoundException;
+import ru.yandex.practicum.bank.user.exception.user.UserNotFoundException;
 import ru.yandex.practicum.bank.user.mapper.AccountMapper;
 import ru.yandex.practicum.bank.user.model.Account;
 import ru.yandex.practicum.bank.user.model.User;
@@ -40,7 +40,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional(readOnly = true)
     public List<AccountDto> getAccounts(String login) {
         User user = userJpaRepository.findByLogin(login)
-                .orElseThrow(() -> new UserAccountNotFoundException(login));
+                .orElseThrow(() -> new UserNotFoundException(login));
         List<Account> accounts = accountJpaRepository.findByOwner(user);
         return accounts.stream()
                 .map(AccountMapper.INSTANCE::toAccountDto)
@@ -51,7 +51,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public List<AccountDto> changeAccountsState(String login, List<AccountsChangeRequestDto> accountsChangeRequestDtoList) {
         User user = userJpaRepository.findByLogin(login)
-                .orElseThrow(() -> new UserAccountNotFoundException(login));
+                .orElseThrow(() -> new UserNotFoundException(login));
         List<Account> accounts = accountJpaRepository.findByOwner(user);
 
         Map<Currency, Qwe> asd = accountsChangeRequestDtoList

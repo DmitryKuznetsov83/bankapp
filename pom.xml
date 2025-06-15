@@ -23,6 +23,7 @@
         <module>account-service</module>
         <module>exchange-generator-service</module>
         <module>exchange-service</module>
+        <module>cash-service</module>
     </modules>
 
     <properties>
