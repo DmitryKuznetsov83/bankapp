@@ -74,6 +74,37 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
 
         transaction = transferTransactionJpaRepository.save(transaction);
         TransferTransactionDto transactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
+
+
+
+        try {
+            Boolean blocked = restClient
+                    .post()
+                    .uri("http://localhost:8087/blocker/transfer-transactions")
+                    .body(transactionDto)
+                    .retrieve()
+                    .body(Boolean.class);
+            if (Boolean.TRUE.equals(blocked)) {
+                transaction.setStatus(TransactionStatus.FAILED);
+                transaction.setComment("Транзакция заблокирована как подозрительная");
+                return TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
+            } else {
+                transaction.setStatus(TransactionStatus.SUCCESS);
+            }
+            transaction = transferTransactionJpaRepository.save(transaction);
+        } catch (HttpClientErrorException e) {
+            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
+            String reason = apiErrorDto.getMessage();
+            transaction.setStatus(TransactionStatus.FAILED);
+            transaction.setComment(reason);
+            transaction = transferTransactionJpaRepository.save(transaction);
+        } catch (Throwable e) {
+            System.out.println(e.getMessage());
+        }
+
+
+
+
         try {
             restClient
                     .post()

@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: blocker-service
+
+server:
+  port: 8087
+
+blocker:
+  min-threshold: 10
+  max-threshold: 1000
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health, info
+#  endpoint:
+#    health:
+#      show-details: always

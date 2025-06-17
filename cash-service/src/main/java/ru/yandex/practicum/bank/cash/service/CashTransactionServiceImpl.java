@@ -42,6 +42,33 @@ public class CashTransactionServiceImpl implements CashTransactionService {
         transaction.setStatus(TransactionStatus.PENDING);
         transaction = cashTransactionJpaRepository.save(transaction);
         CashTransactionDto transactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
+
+        try {
+            Boolean blocked = restClient
+                    .post()
+                    .uri("http://localhost:8087/blocker/cash-transactions")
+                    .body(transactionDto)
+                    .retrieve()
+                    .body(Boolean.class);
+            if (Boolean.TRUE.equals(blocked)) {
+                transaction.setStatus(TransactionStatus.FAILED);
+                transaction.setComment("Транзакция заблокирована как подозрительная");
+                return CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
+            } else {
+                transaction.setStatus(TransactionStatus.SUCCESS);
+            }
+            transaction = cashTransactionJpaRepository.save(transaction);
+        } catch (HttpClientErrorException e) {
+            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
+            String reason = apiErrorDto.getMessage();
+            transaction.setStatus(TransactionStatus.FAILED);
+            transaction.setComment(reason);
+            transaction = cashTransactionJpaRepository.save(transaction);
+        } catch (Throwable e) {
+            System.out.println(e.getMessage());
+        }
+
+
         try {
             restClient
                     .post()
