@@ -1,9 +1,6 @@
 package ru.yandex.practicum.bank.user.service;
 
-import ru.yandex.practicum.bank.user.dto.user.CreateUserDto;
-import ru.yandex.practicum.bank.user.dto.user.UpdateUserDto;
-import ru.yandex.practicum.bank.user.dto.user.UpdateUserPasswordDto;
-import ru.yandex.practicum.bank.user.dto.user.UserDto;
+import ru.yandex.practicum.bank.user.dto.user.*;
 
 import java.util.List;
 
@@ -19,6 +16,6 @@ public interface UserService {
 
     UserDto getUser(String login);
 
-    List<String> getUsers();
+    List<ShortUserDto> getUsers();
 
 }

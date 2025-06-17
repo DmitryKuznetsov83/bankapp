@@ -6,6 +6,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.exchange.dto.CurrencyRateDto;
 import ru.yandex.practicum.bank.exchange.dto.CurrencyRateView;
+import ru.yandex.practicum.bank.exchange.dto.RelativeExchangeRateDto;
+import ru.yandex.practicum.bank.exchange.enums.Currency;
 import ru.yandex.practicum.bank.exchange.service.RateService;
 
 import java.util.List;
@@ -36,6 +38,11 @@ public class CurrencyRateController {
     @PostMapping
     public void registerRates(@RequestBody @Valid List<CurrencyRateDto> ratesDtos) {
         rateService.registerRates(ratesDtos);
+    }
+
+    @GetMapping("/relative")
+    public RelativeExchangeRateDto getRelativeCurrentRate(@RequestParam Currency fromCurrency, @RequestParam Currency toCurrency) {
+        return rateService.getRelativeExchangeRate(fromCurrency, toCurrency);
     }
 
 }

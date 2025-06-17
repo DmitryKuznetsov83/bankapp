@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.user.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.user.dto.transaction.CashTransactionDto;
+import ru.yandex.practicum.bank.user.dto.transaction.TransferTransactionDto;
 import ru.yandex.practicum.bank.user.exception.account.InsufficientFundsException;
 import ru.yandex.practicum.bank.user.service.TransactionService;
 
@@ -24,6 +25,11 @@ public class TransactionController {
     @PostMapping("/cash")
     public void processCashTransaction(@RequestBody @Valid CashTransactionDto cashTransactionDto) {
         transactionService.processTransaction(cashTransactionDto);
+    }
+
+    @PostMapping("/transfer")
+    public void processTransferTransaction(@RequestBody @Valid TransferTransactionDto transferTransactionDto) {
+        transactionService.processTransaction(transferTransactionDto);
     }
 
     @ExceptionHandler({InsufficientFundsException.class})

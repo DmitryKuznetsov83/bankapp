@@ -73,11 +73,11 @@ public class ScheduledTaskService {
             throw new IllegalArgumentException("Min must be less than or equal to max");
         }
 
-        int scale = 2;
+        int scale = 0;
         Random random = new Random();
         BigDecimal diff = max.subtract(min);
         BigDecimal randomFactor = BigDecimal.valueOf(random.nextDouble());
-        BigDecimal scaledRandom = diff.multiply(randomFactor).setScale(scale, RoundingMode.HALF_UP);
+        BigDecimal scaledRandom = diff.multiply(randomFactor).setScale(scale, RoundingMode.UP);
         BigDecimal result = min.add(scaledRandom);
 
         return Optional.of(result);

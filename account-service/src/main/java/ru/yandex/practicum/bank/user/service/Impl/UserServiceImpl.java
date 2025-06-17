@@ -3,10 +3,7 @@ package ru.yandex.practicum.bank.user.service.Impl;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.bank.user.dto.user.CreateUserDto;
-import ru.yandex.practicum.bank.user.dto.user.UpdateUserDto;
-import ru.yandex.practicum.bank.user.dto.user.UpdateUserPasswordDto;
-import ru.yandex.practicum.bank.user.dto.user.UserDto;
+import ru.yandex.practicum.bank.user.dto.user.*;
 import ru.yandex.practicum.bank.user.exception.user.LoginAlreadyUsedException;
 import ru.yandex.practicum.bank.user.exception.user.PasswordAndConfirmationDoNotMatchException;
 import ru.yandex.practicum.bank.user.exception.user.PasswordIsSameAsPreviousException;
@@ -96,10 +93,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<String> getUsers() {
+    public List<ShortUserDto> getUsers() {
         return userJpaRepository.findAll()
                 .stream()
-                .map(User::getLogin)
+                .map(UserMapper.INSTANCE::toShortUserDto)
                 .toList();
     }
 

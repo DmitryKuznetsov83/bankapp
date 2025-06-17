@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 import ru.yandex.practicum.bank.user.dto.user.CreateUserDto;
+import ru.yandex.practicum.bank.user.dto.user.ShortUserDto;
 import ru.yandex.practicum.bank.user.dto.user.UserDto;
 import ru.yandex.practicum.bank.user.model.User;
 
@@ -17,5 +18,7 @@ public interface UserMapper {
     User toUser(CreateUserDto createUserDto);
 
     UserDto toUserDto(User user);
+
+    ShortUserDto toShortUserDto(User user);
 
 }

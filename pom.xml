@@ -24,6 +24,7 @@
         <module>exchange-generator-service</module>
         <module>exchange-service</module>
         <module>cash-service</module>
+        <module>transfer-service</module>
     </modules>
 
     <properties>

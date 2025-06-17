@@ -19,10 +19,8 @@ import ru.yandex.practicum.bank.front.dto.*;
 import ru.yandex.practicum.bank.front.dto.account.AccountDto;
 import ru.yandex.practicum.bank.front.dto.account.AccountsChangeRequestDto;
 import ru.yandex.practicum.bank.front.dto.transaction.CreateCashTransactionDto;
-import ru.yandex.practicum.bank.front.dto.user.CreateUserDto;
-import ru.yandex.practicum.bank.front.dto.user.UpdateUserDto;
-import ru.yandex.practicum.bank.front.dto.user.UpdateUserPasswordDto;
-import ru.yandex.practicum.bank.front.dto.user.UserDto;
+import ru.yandex.practicum.bank.front.dto.transaction.CreateTransferTransactionDto;
+import ru.yandex.practicum.bank.front.dto.user.*;
 import ru.yandex.practicum.bank.front.enums.AccountState;
 import ru.yandex.practicum.bank.front.enums.Currency;
 import ru.yandex.practicum.bank.front.service.user.AppUserDetails;
@@ -36,7 +34,6 @@ import java.util.stream.Stream;
 public class MainController {
 
     private final RestClient restClient = RestClient.create();
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final UserDetailsService userDetailsService;
 
     @Autowired
@@ -82,6 +79,21 @@ public class MainController {
         }
 
         model.addAttribute("currency", Currency.values());
+
+
+        List<ShortUserDto> shortUserDtos = new ArrayList<>();
+        try {
+            shortUserDtos = restClient
+                    .get()
+                    .uri("http://localhost:8082/users")
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<ShortUserDto>>() {});
+
+        } catch (Throwable e) {
+            model.addAttribute("externalTransferErrors", List.of("Список пользователей недоступен"));
+        }
+
+        model.addAttribute("users", shortUserDtos);
 
         return "main";
     }
@@ -205,6 +217,57 @@ public class MainController {
             redirectAttributes.addFlashAttribute("cashErrors", List.of(apiErrorDto.getMessage()));
         } catch (Throwable e) {
             redirectAttributes.addFlashAttribute("cashErrors", List.of("Сервис недоступен"));
+        }
+
+        return "redirect:/main";
+    }
+
+    @PostMapping("/user/self-transfer")
+    public String processSelfTransferTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
+                                         Model model,
+                                         @ModelAttribute CreateTransferTransactionDto createTransferTransactionDto,
+                                         RedirectAttributes redirectAttributes) {
+
+        createTransferTransactionDto.setFromLogin(appUserDetails.getLogin());
+        createTransferTransactionDto.setToLogin(appUserDetails.getLogin());
+
+        try {
+            restClient
+                    .post()
+                    .uri("http://localhost:8086/transfer-transactions/self-transactions")
+                    .body(createTransferTransactionDto)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException e) {
+            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
+            redirectAttributes.addFlashAttribute("selfTransferErrors", List.of(apiErrorDto.getMessage()));
+        } catch (Throwable e) {
+            redirectAttributes.addFlashAttribute("selfTransferErrors", List.of("Сервис недоступен"));
+        }
+
+        return "redirect:/main";
+    }
+
+    @PostMapping("/user/external-transfer")
+    public String processExternalTransferTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
+                                                 Model model,
+                                                 @ModelAttribute CreateTransferTransactionDto creatTransferTransactionDto,
+                                                 RedirectAttributes redirectAttributes) {
+
+        creatTransferTransactionDto.setFromLogin(appUserDetails.getLogin());
+
+        try {
+            restClient
+                    .post()
+                    .uri("http://localhost:8086/transfer-transactions/external-transactions")
+                    .body(creatTransferTransactionDto)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException e) {
+            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
+            redirectAttributes.addFlashAttribute("externalTransferErrors", List.of(apiErrorDto.getMessage()));
+        } catch (Throwable e) {
+            redirectAttributes.addFlashAttribute("externalTransferErrors", List.of("Сервис недоступен"));
         }
 
         return "redirect:/main";

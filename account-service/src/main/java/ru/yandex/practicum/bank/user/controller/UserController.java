@@ -6,10 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.user.dto.*;
-import ru.yandex.practicum.bank.user.dto.user.CreateUserDto;
-import ru.yandex.practicum.bank.user.dto.user.UpdateUserDto;
-import ru.yandex.practicum.bank.user.dto.user.UpdateUserPasswordDto;
-import ru.yandex.practicum.bank.user.dto.user.UserDto;
+import ru.yandex.practicum.bank.user.dto.user.*;
 import ru.yandex.practicum.bank.user.exception.user.*;
 import ru.yandex.practicum.bank.user.service.UserService;
 
@@ -53,7 +50,7 @@ public class UserController {
     }
 
     @GetMapping
-    public List<String> getUsers() {
+    public List<ShortUserDto> getUsers() {
         return userService.getUsers();
     }
 

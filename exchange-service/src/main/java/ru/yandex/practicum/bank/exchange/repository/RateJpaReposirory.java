@@ -10,6 +10,6 @@ import java.util.UUID;
 public interface RateJpaReposirory extends JpaRepository<CurrencyRate, UUID> {
 
     @Query("SELECT r FROM CurrencyRate r WHERE r.timestamp = (SELECT MAX(r2.timestamp) FROM CurrencyRate r2 WHERE r2.currency = r.currency)")
-    List<CurrencyRate> findLatestRatesJpql();
+    List<CurrencyRate> findLatestRates();
 
 }
