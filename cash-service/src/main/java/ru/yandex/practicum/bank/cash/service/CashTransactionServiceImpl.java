@@ -11,8 +11,11 @@ import ru.yandex.practicum.bank.cash.enums.TransactionStatus;
 import ru.yandex.practicum.bank.cash.mapper.CashTransactionMapper;
 import ru.yandex.practicum.bank.cash.model.CashTransaction;
 import ru.yandex.practicum.bank.cash.repository.CashTransactionJpaRepository;
+import ru.yandex.practicum.bank.notification.service.NotificationSender;
 
 import java.util.List;
+
+import static ru.yandex.practicum.bank.notification.enums.NotificationLevel.*;
 
 @Service
 public class CashTransactionServiceImpl implements CashTransactionService {
@@ -20,9 +23,12 @@ public class CashTransactionServiceImpl implements CashTransactionService {
     private final RestClient restClient = RestClient.create();
 
     private final CashTransactionJpaRepository cashTransactionJpaRepository;
+    private final NotificationSender notificationSender;
 
-    public CashTransactionServiceImpl(CashTransactionJpaRepository cashTransactionJpaRepository) {
+    public CashTransactionServiceImpl(CashTransactionJpaRepository cashTransactionJpaRepository,
+                                      NotificationSender notificationSender) {
         this.cashTransactionJpaRepository = cashTransactionJpaRepository;
+        this.notificationSender = notificationSender;
     }
 
     @Override
@@ -53,6 +59,7 @@ public class CashTransactionServiceImpl implements CashTransactionService {
             if (Boolean.TRUE.equals(blocked)) {
                 transaction.setStatus(TransactionStatus.FAILED);
                 transaction.setComment("Транзакция заблокирована как подозрительная");
+                notificationSender.send(createCashTransactionDto.getUserLogin(), WARNING, "Транзакция заблокирована как подозрительная");
                 return CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
             } else {
                 transaction.setStatus(TransactionStatus.SUCCESS);
@@ -78,15 +85,18 @@ public class CashTransactionServiceImpl implements CashTransactionService {
                     .toBodilessEntity();
             transaction.setStatus(TransactionStatus.SUCCESS);
             transaction = cashTransactionJpaRepository.save(transaction);
+            notificationSender.send(createCashTransactionDto.getUserLogin(), INFO, "Успешное снятие средств");
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
             String reason = apiErrorDto.getMessage();
             transaction.setStatus(TransactionStatus.FAILED);
             transaction.setComment(reason);
             transaction = cashTransactionJpaRepository.save(transaction);
+            notificationSender.send(createCashTransactionDto.getUserLogin(), WARNING, reason);
         } catch (Throwable e) {
             System.out.println(e.getMessage());
         }
         return CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
     }
+
 }

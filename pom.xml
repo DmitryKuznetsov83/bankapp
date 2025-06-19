@@ -26,6 +26,8 @@
         <module>cash-service</module>
         <module>transfer-service</module>
         <module>blocker-service</module>
+        <module>notification-service</module>
+        <module>notification-starter</module>
     </modules>
 
     <properties>
@@ -68,18 +70,6 @@
                             <version>1.6.0.Beta1</version>
                         </path>
                     </annotationProcessorPaths>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
                 </configuration>
             </plugin>
         </plugins>

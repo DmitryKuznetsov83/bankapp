@@ -2,6 +2,7 @@ package ru.yandex.practicum.bank.exchange.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.bank.exchange.dto.CurrencyRateDto;
 import ru.yandex.practicum.bank.exchange.dto.RelativeExchangeRateDto;
 import ru.yandex.practicum.bank.exchange.enums.Currency;
@@ -13,7 +14,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 public class RateServiceImpl implements RateService {
@@ -26,6 +26,7 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CurrencyRateDto> getCurrentRates() {
         return rateJpaReposirory
                 .findLatestRates()
@@ -35,6 +36,7 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
+    @Transactional
     public void registerRates(List<CurrencyRateDto> rateDtos) {
         List<CurrencyRate> rateModels = rateDtos
                 .stream()
@@ -44,6 +46,7 @@ public class RateServiceImpl implements RateService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RelativeExchangeRateDto getRelativeExchangeRate(Currency fromCurrency, Currency toCurrency) {
         List<CurrencyRate> latestRates = rateJpaReposirory.findLatestRates();
 
@@ -65,4 +68,5 @@ public class RateServiceImpl implements RateService {
                 .rate(relativeRate)
                 .build();
     }
+
 }

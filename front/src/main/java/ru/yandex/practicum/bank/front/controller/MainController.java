@@ -1,6 +1,5 @@
 package ru.yandex.practicum.bank.front.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,7 +22,7 @@ import ru.yandex.practicum.bank.front.dto.transaction.CreateTransferTransactionD
 import ru.yandex.practicum.bank.front.dto.user.*;
 import ru.yandex.practicum.bank.front.enums.AccountState;
 import ru.yandex.practicum.bank.front.enums.Currency;
-import ru.yandex.practicum.bank.front.service.user.AppUserDetails;
+import ru.yandex.practicum.bank.front.security.AppUserDetails;
 
 import java.math.BigDecimal;
 import java.util.*;

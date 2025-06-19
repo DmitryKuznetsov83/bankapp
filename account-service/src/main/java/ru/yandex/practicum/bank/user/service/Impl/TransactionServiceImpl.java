@@ -64,6 +64,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    @Transactional
     public void processTransaction(TransferTransactionDto transferTransactionDto) {
 
         String fromLogin = transferTransactionDto.getFromLogin();
@@ -111,4 +112,5 @@ public class TransactionServiceImpl implements TransactionService {
         accountJpaRepository.saveAll(Set.of(fromAccount, toAccount));
 
     }
+
 }

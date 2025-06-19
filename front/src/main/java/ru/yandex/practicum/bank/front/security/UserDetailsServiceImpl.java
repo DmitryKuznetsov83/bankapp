@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.front.service.user;
+package ru.yandex.practicum.bank.front.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import ru.yandex.practicum.bank.notification.service.NotificationSender;
 import ru.yandex.practicum.bank.transfer.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.transfer.dto.CreateTransferTransactionDto;
 import ru.yandex.practicum.bank.transfer.dto.RelativeExchangeRateDto;
@@ -18,15 +19,20 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+import static ru.yandex.practicum.bank.notification.enums.NotificationLevel.INFO;
+import static ru.yandex.practicum.bank.notification.enums.NotificationLevel.WARNING;
+
 @Service
 public class TransferTransactionServiceImpl implements TransferTransactionService {
 
     private final RestClient restClient = RestClient.create();
 
     private final TransferTransactionJpaRepository transferTransactionJpaRepository;
+    private final NotificationSender notificationSender;
 
-    public TransferTransactionServiceImpl(TransferTransactionJpaRepository transferTransactionJpaRepository) {
+    public TransferTransactionServiceImpl(TransferTransactionJpaRepository transferTransactionJpaRepository, NotificationSender notificationSender) {
         this.transferTransactionJpaRepository = transferTransactionJpaRepository;
+        this.notificationSender = notificationSender;
     }
 
     @Override
@@ -68,6 +74,8 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
             transaction.setStatus(TransactionStatus.FAILED);
             transaction.setComment(reason);
             transaction = transferTransactionJpaRepository.save(transaction);
+            notificationSender.send(createTransferTransactionDto.getFromLogin(), WARNING, reason);
+            return TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
         } catch (Throwable e) {
             System.out.println(e.getMessage());
         }
@@ -87,6 +95,7 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
             if (Boolean.TRUE.equals(blocked)) {
                 transaction.setStatus(TransactionStatus.FAILED);
                 transaction.setComment("Транзакция заблокирована как подозрительная");
+                notificationSender.send(createTransferTransactionDto.getFromLogin(), WARNING, "Транзакция заблокирована как подозрительная");
                 return TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
             } else {
                 transaction.setStatus(TransactionStatus.SUCCESS);
@@ -114,12 +123,14 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
                     .toBodilessEntity();
             transaction.setStatus(TransactionStatus.SUCCESS);
             transaction = transferTransactionJpaRepository.save(transaction);
+            notificationSender.send(createTransferTransactionDto.getFromLogin(), INFO, "Успешный перевод средств");
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
             String reason = apiErrorDto.getMessage();
             transaction.setStatus(TransactionStatus.FAILED);
             transaction.setComment(reason);
             transaction = transferTransactionJpaRepository.save(transaction);
+            notificationSender.send(createTransferTransactionDto.getFromLogin(), WARNING, reason);
         } catch (Throwable e) {
             System.out.println(e.getMessage());
         }
