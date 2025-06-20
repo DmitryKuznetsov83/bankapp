@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 import ru.yandex.practicum.bank.exchange.config.ExchangeGeneratorConfig;
 import ru.yandex.practicum.bank.exchange.dto.CurrencyRateDto;
 import ru.yandex.practicum.bank.exchange.enums.Currency;
@@ -20,12 +20,14 @@ import java.util.*;
 @EnableScheduling
 public class ScheduledTaskService {
 
+    private final RestTemplate internalRestTemplate;
     private final ExchangeGeneratorConfig exchangeGeneratorConfig;
-    private final RestClient restClient = RestClient.create();
+
     private static final Logger logger = LoggerFactory.getLogger(ScheduledTaskService.class);
 
     @Autowired
-    public ScheduledTaskService(ExchangeGeneratorConfig exchangeGeneratorConfig) {
+    public ScheduledTaskService(RestTemplate internalRestTemplate, ExchangeGeneratorConfig exchangeGeneratorConfig) {
+        this.internalRestTemplate = internalRestTemplate;
         this.exchangeGeneratorConfig = exchangeGeneratorConfig;
     }
 
@@ -41,12 +43,8 @@ public class ScheduledTaskService {
 
 
         try {
-            restClient
-                    .post()
-                    .uri("http://localhost:8084/rates")
-                    .body(rates)
-                    .retrieve()
-                    .toBodilessEntity();
+            internalRestTemplate
+                    .postForEntity("lb://exchange-service/rates", rates, Void.class);
         } catch (HttpClientErrorException e) {
             logger.warn("Error while sending rate request" + e.getResponseBodyAsString());
         } catch (Throwable e) {

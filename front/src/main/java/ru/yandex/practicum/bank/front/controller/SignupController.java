@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 import ru.yandex.practicum.bank.common.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.front.dto.user.CreateUserForm;
 import ru.yandex.practicum.bank.front.dto.user.UserDto;
@@ -18,10 +18,11 @@ import java.util.List;
 @Controller
 public class SignupController {
 
-    private final RestClient restClient = RestClient.create();
+    private final RestTemplate internalRestTemplate;
     private final PasswordEncoder passwordEncoder;
 
-    public SignupController(PasswordEncoder passwordEncoder) {
+    public SignupController(RestTemplate internalRestTemplate, PasswordEncoder passwordEncoder) {
+        this.internalRestTemplate = internalRestTemplate;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -46,12 +47,8 @@ public class SignupController {
         userDto.setPasswordHash(passwordHash);
 
         try {
-            restClient
-                    .post()
-                    .uri("http://localhost:8082/users")
-                    .body(userDto)
-                    .retrieve()
-                    .toBodilessEntity();
+            internalRestTemplate
+                    .postForObject("http://localhost:8080/users", userDto, String.class);
             return "redirect:/login";
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);

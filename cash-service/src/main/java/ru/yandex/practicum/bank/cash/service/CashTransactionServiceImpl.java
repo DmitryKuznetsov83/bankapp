@@ -3,10 +3,11 @@ package ru.yandex.practicum.bank.cash.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 import ru.yandex.practicum.bank.cash.dto.CashTransactionDto;
 import ru.yandex.practicum.bank.cash.dto.CreateCashTransactionDto;
 import ru.yandex.practicum.bank.cash.enums.TransactionStatus;
@@ -26,15 +27,14 @@ public class CashTransactionServiceImpl implements CashTransactionService {
 
     private static final Logger log = LoggerFactory.getLogger(CashTransactionServiceImpl.class);
 
-    private final RestClient restClient = RestClient.create();
-    private final ObjectMapper objectMapper;
-
+    private final RestTemplate internalRestTemplate;
     private final CashTransactionJpaRepository cashTransactionJpaRepository;
     private final NotificationSender notificationSender;
 
-    public CashTransactionServiceImpl(ObjectMapper objectMapper, CashTransactionJpaRepository cashTransactionJpaRepository,
+    public CashTransactionServiceImpl(RestTemplate internalRestTemplate,
+                                      CashTransactionJpaRepository cashTransactionJpaRepository,
                                       NotificationSender notificationSender) {
-        this.objectMapper = objectMapper;
+        this.internalRestTemplate = internalRestTemplate;
         this.cashTransactionJpaRepository = cashTransactionJpaRepository;
         this.notificationSender = notificationSender;
     }
@@ -63,11 +63,9 @@ public class CashTransactionServiceImpl implements CashTransactionService {
 
     private CashTransaction checkBlocking(CashTransaction transaction) {
         try {
-            Boolean blocked = restClient.post()
-                    .uri("http://localhost:8087/blockers/cash-transactions/validate")
-                    .body(CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction))
-                    .retrieve()
-                    .body(Boolean.class);
+            CashTransactionDto cashTransactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
+            Boolean blocked = internalRestTemplate
+                    .postForObject("lb://blocker-service/blockers/cash-transactions/validate", cashTransactionDto, Boolean.class);
             if (Boolean.TRUE.equals(blocked)) {
                 String reason = "Транзакция заблокирована как подозрительная";
                 transaction = updateTransactionStatus(transaction, FAILED, reason);
@@ -81,11 +79,9 @@ public class CashTransactionServiceImpl implements CashTransactionService {
 
     private CashTransaction checkBalance(CashTransaction transaction) {
         try {
-            restClient.post()
-                    .uri("http://localhost:8082/transactions/cash-transactions/validate")
-                    .body(CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction))
-                    .retrieve()
-                    .toBodilessEntity();
+            CashTransactionDto cashTransactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
+            internalRestTemplate
+                    .postForObject("lb://account-service/transactions/cash-transactions/validate", cashTransactionDto, Void.class);
             transaction = updateTransactionStatus(transaction, SUCCESS, null);
             notificationSender.send(transaction.getUserLogin(), INFO, "Успешное снятие средств");
         } catch (HttpClientErrorException e) {

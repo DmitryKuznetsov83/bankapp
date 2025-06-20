@@ -1,29 +1,8 @@
 spring:
   application:
     name: cash-service
-  datasource:
-    url: jdbc:postgresql://localhost:5432/bank
-    username: postgres
-    password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        default_schema: cash
-    sql:
-      init:
-        mode: always
-
-server:
-  port: 8085
-
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health, info
-#  endpoint:
-#    health:
-#      show-details: always
+  config:
+    import: "configserver:"
+  cloud:
+    config:
+      fail-fast: true

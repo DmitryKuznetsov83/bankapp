@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.client.RestTemplate;
 import ru.yandex.practicum.bank.front.security.UserDetailsServiceImpl;
 
 @Configuration
@@ -40,8 +41,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceImpl();
+    public UserDetailsService userDetailsService(RestTemplate internalRestTemplate) {
+        return new UserDetailsServiceImpl(internalRestTemplate);
     }
 
     @Bean

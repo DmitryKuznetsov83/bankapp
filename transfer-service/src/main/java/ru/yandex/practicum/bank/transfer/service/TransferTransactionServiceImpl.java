@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.yandex.practicum.bank.common.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.notification.service.NotificationSender;
@@ -30,12 +30,12 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
 
     private static final Logger log = LoggerFactory.getLogger(TransferTransactionServiceImpl.class);
 
-    private final RestClient restClient = RestClient.create();
-
+    private final RestTemplate internalRestTemplate;
     private final TransferTransactionJpaRepository transferTransactionJpaRepository;
     private final NotificationSender notificationSender;
 
-    public TransferTransactionServiceImpl(TransferTransactionJpaRepository transferTransactionJpaRepository, NotificationSender notificationSender) {
+    public TransferTransactionServiceImpl(RestTemplate internalRestTemplate, TransferTransactionJpaRepository transferTransactionJpaRepository, NotificationSender notificationSender) {
+        this.internalRestTemplate = internalRestTemplate;
         this.transferTransactionJpaRepository = transferTransactionJpaRepository;
         this.notificationSender = notificationSender;
     }
@@ -73,15 +73,13 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
         }
 
         try {
-            String url = UriComponentsBuilder.fromUriString("http://localhost:8084/rates/relative")
+            String url = UriComponentsBuilder.fromUriString("lb://exchange-service/rates/relative")
                     .queryParam("fromCurrency", transaction.getFromCurrency())
                     .queryParam("toCurrency", transaction.getToCurrency())
                     .toUriString();
 
-            BigDecimal toSum = restClient.get()
-                    .uri(url)
-                    .retrieve()
-                    .body(RelativeExchangeRateDto.class)
+            BigDecimal toSum = internalRestTemplate
+                    .getForObject(url, RelativeExchangeRateDto.class)
                     .getRate()
                     .multiply(transaction.getFromSum()).setScale(0, RoundingMode.UP);
 
@@ -102,11 +100,9 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
 
     private TransferTransaction checkBlocking(TransferTransaction transaction) {
         try {
-            Boolean blocked = restClient.post()
-                    .uri("http://localhost:8087/blockers/transfer-transactions/validate")
-                    .body(TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction))
-                    .retrieve()
-                    .body(Boolean.class);
+            TransferTransactionDto transferTransactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
+            Boolean blocked = internalRestTemplate
+                    .postForObject("lb://blocker-service/blockers/transfer-transactions/validate", transferTransactionDto, Boolean.class);
             if (Boolean.TRUE.equals(blocked)) {
                 String reason = "Транзакция заблокирована как подозрительная";
                 transaction = updateTransactionStatus(transaction, FAILED, reason);
@@ -120,12 +116,9 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
 
     private TransferTransaction checkBalance(TransferTransaction transaction) {
         try {
-            restClient
-                    .post()
-                    .uri("http://localhost:8082/transactions/transfer-transactions/validate")
-                    .body(TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction))
-                    .retrieve()
-                    .toBodilessEntity();
+            TransferTransactionDto transferTransactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
+            internalRestTemplate
+                    .postForEntity("lb://account-service/transactions/transfer-transactions/validate", transferTransactionDto, Void.class);
             transaction = updateTransactionStatus(transaction, SUCCESS, null);
             notificationSender.send(transaction.getFromLogin(), INFO, "Успешный перевод средств");
         } catch (HttpClientErrorException e) {

@@ -29,6 +29,8 @@
         <module>notification-service</module>
         <module>notification-starter</module>
         <module>common-library</module>
+        <module>config-server</module>
+        <module>discovery-server</module>
     </modules>
 
     <properties>
@@ -49,6 +51,14 @@
                 <artifactId>lombok-mapstruct-binding</artifactId>
                 <version>0.2.0</version>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2025.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
         </dependencies>
