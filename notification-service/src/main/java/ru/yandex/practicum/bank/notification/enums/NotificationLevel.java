@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.notofocation.enums;
+package ru.yandex.practicum.bank.notification.enums;
 
 public enum NotificationLevel {
 

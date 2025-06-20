@@ -20,6 +20,8 @@ import ru.yandex.practicum.bank.user.service.TransactionService;
 import java.math.BigDecimal;
 import java.util.Set;
 
+import static ru.yandex.practicum.bank.user.enums.CashTransactionType.*;
+
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
@@ -33,7 +35,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void processTransaction(CashTransactionDto cashTransactionDto) {
+    public void validateTransaction(CashTransactionDto cashTransactionDto) {
         String login = cashTransactionDto.getUserLogin();
         Currency currency = cashTransactionDto.getCurrency();
         BigDecimal sum = cashTransactionDto.getSum();
@@ -49,9 +51,9 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         BigDecimal newBalance = account.getBalance();
-        if (CashTransactionType.CASH_IN.equals(transactionType)) {
+        if (CASH_IN.equals(transactionType)) {
             newBalance = newBalance.add(sum);
-        } else if (CashTransactionType.CASH_OUT.equals(transactionType)) {
+        } else if (CASH_OUT.equals(transactionType)) {
             newBalance = newBalance.subtract(sum);
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
                 throw new InsufficientFundsException(login, currency);
@@ -65,7 +67,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public void processTransaction(TransferTransactionDto transferTransactionDto) {
+    public void validateTransaction(TransferTransactionDto transferTransactionDto) {
 
         String fromLogin = transferTransactionDto.getFromLogin();
         String toLogin = transferTransactionDto.getToLogin();

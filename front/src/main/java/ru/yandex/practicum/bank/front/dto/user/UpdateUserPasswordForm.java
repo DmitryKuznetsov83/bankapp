@@ -5,18 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateUserDto {
+public class UpdateUserPasswordForm {
 
-    private String login;
     private String password;
     private String confirmPassword;
-    private String name;
-    private LocalDate birthdate;
 
 }

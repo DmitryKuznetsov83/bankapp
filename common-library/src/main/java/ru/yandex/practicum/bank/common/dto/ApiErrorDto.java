@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.transfer.dto;
+package ru.yandex.practicum.bank.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

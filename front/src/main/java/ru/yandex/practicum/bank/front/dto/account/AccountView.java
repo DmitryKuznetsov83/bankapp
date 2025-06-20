@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.front.controller;
+package ru.yandex.practicum.bank.front.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountRepresentation {
+public class AccountView {
 
     private Currency currency;
     private AccountState state;

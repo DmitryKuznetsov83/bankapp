@@ -1,5 +1,8 @@
 package ru.yandex.practicum.bank.front.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum Currency {
     RUB("Рубли"),
     USD("Доллары"),
@@ -7,11 +10,8 @@ public enum Currency {
 
     private final String title;
 
-    Currency(String currencyName) {
-        this.title = currencyName;
+    Currency(String title) {
+        this.title = title;
     }
 
-    public String getTitle() {
-        return title;
-    }
 }

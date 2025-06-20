@@ -17,7 +17,7 @@ public class BlockerServiceImpl implements BlockerService {
     }
 
     @Override
-    public Boolean blockCashTransaction(CashTransactionDto cashTransactionDto) {
+    public Boolean validateCashTransaction(CashTransactionDto cashTransactionDto) {
         BigDecimal transactionSum = cashTransactionDto.getSum();
         BigDecimal min = blockerConfig.getMinThreshold();
         BigDecimal max = blockerConfig.getMaxThreshold();
@@ -25,7 +25,7 @@ public class BlockerServiceImpl implements BlockerService {
     }
 
     @Override
-    public Boolean blockTransferTransaction(TransferTransactionDto transferTransactionDto) {
+    public Boolean validateTransferTransaction(TransferTransactionDto transferTransactionDto) {
         BigDecimal transactionSum = transferTransactionDto.getFromSum();
         BigDecimal min = blockerConfig.getMinThreshold();
         BigDecimal max = blockerConfig.getMaxThreshold();

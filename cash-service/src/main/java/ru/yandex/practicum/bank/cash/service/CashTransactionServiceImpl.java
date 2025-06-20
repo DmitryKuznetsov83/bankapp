@@ -1,32 +1,40 @@
 package ru.yandex.practicum.bank.cash.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
-import ru.yandex.practicum.bank.cash.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.cash.dto.CashTransactionDto;
 import ru.yandex.practicum.bank.cash.dto.CreateCashTransactionDto;
 import ru.yandex.practicum.bank.cash.enums.TransactionStatus;
 import ru.yandex.practicum.bank.cash.mapper.CashTransactionMapper;
 import ru.yandex.practicum.bank.cash.model.CashTransaction;
 import ru.yandex.practicum.bank.cash.repository.CashTransactionJpaRepository;
+import ru.yandex.practicum.bank.common.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.notification.service.NotificationSender;
 
 import java.util.List;
 
+import static ru.yandex.practicum.bank.cash.enums.TransactionStatus.*;
 import static ru.yandex.practicum.bank.notification.enums.NotificationLevel.*;
 
 @Service
 public class CashTransactionServiceImpl implements CashTransactionService {
 
+    private static final Logger log = LoggerFactory.getLogger(CashTransactionServiceImpl.class);
+
     private final RestClient restClient = RestClient.create();
+    private final ObjectMapper objectMapper;
 
     private final CashTransactionJpaRepository cashTransactionJpaRepository;
     private final NotificationSender notificationSender;
 
-    public CashTransactionServiceImpl(CashTransactionJpaRepository cashTransactionJpaRepository,
+    public CashTransactionServiceImpl(ObjectMapper objectMapper, CashTransactionJpaRepository cashTransactionJpaRepository,
                                       NotificationSender notificationSender) {
+        this.objectMapper = objectMapper;
         this.cashTransactionJpaRepository = cashTransactionJpaRepository;
         this.notificationSender = notificationSender;
     }
@@ -45,58 +53,60 @@ public class CashTransactionServiceImpl implements CashTransactionService {
     @Transactional
     public CashTransactionDto createCashTransaction(CreateCashTransactionDto createCashTransactionDto) {
         CashTransaction transaction = CashTransactionMapper.INSTANCE.toCashTransaction(createCashTransactionDto);
-        transaction.setStatus(TransactionStatus.PENDING);
-        transaction = cashTransactionJpaRepository.save(transaction);
-        CashTransactionDto transactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
+        transaction = updateTransactionStatus(transaction, PENDING, null);
+        transaction = checkBlocking(transaction);
+        if (PENDING.equals(transaction.getStatus())) {
+            transaction = checkBalance(transaction);
+        }
+        return CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
+    }
 
+    private CashTransaction checkBlocking(CashTransaction transaction) {
         try {
-            Boolean blocked = restClient
-                    .post()
-                    .uri("http://localhost:8087/blocker/cash-transactions")
-                    .body(transactionDto)
+            Boolean blocked = restClient.post()
+                    .uri("http://localhost:8087/blockers/cash-transactions/validate")
+                    .body(CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction))
                     .retrieve()
                     .body(Boolean.class);
             if (Boolean.TRUE.equals(blocked)) {
-                transaction.setStatus(TransactionStatus.FAILED);
-                transaction.setComment("Транзакция заблокирована как подозрительная");
-                notificationSender.send(createCashTransactionDto.getUserLogin(), WARNING, "Транзакция заблокирована как подозрительная");
-                return CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
-            } else {
-                transaction.setStatus(TransactionStatus.SUCCESS);
+                String reason = "Транзакция заблокирована как подозрительная";
+                transaction = updateTransactionStatus(transaction, FAILED, reason);
+                notificationSender.send(transaction.getUserLogin(), WARNING, reason);
             }
-            transaction = cashTransactionJpaRepository.save(transaction);
-        } catch (HttpClientErrorException e) {
-            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
-            String reason = apiErrorDto.getMessage();
-            transaction.setStatus(TransactionStatus.FAILED);
-            transaction.setComment(reason);
-            transaction = cashTransactionJpaRepository.save(transaction);
         } catch (Throwable e) {
-            System.out.println(e.getMessage());
+            log.warn("Сервис блокировок недоступен", e);
         }
+        return transaction;
+    }
 
-
+    private CashTransaction checkBalance(CashTransaction transaction) {
         try {
-            restClient
-                    .post()
-                    .uri("http://localhost:8082/transactions/cash")
-                    .body(transactionDto)
+            restClient.post()
+                    .uri("http://localhost:8082/transactions/cash-transactions/validate")
+                    .body(CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction))
                     .retrieve()
                     .toBodilessEntity();
-            transaction.setStatus(TransactionStatus.SUCCESS);
-            transaction = cashTransactionJpaRepository.save(transaction);
-            notificationSender.send(createCashTransactionDto.getUserLogin(), INFO, "Успешное снятие средств");
+            transaction = updateTransactionStatus(transaction, SUCCESS, null);
+            notificationSender.send(transaction.getUserLogin(), INFO, "Успешное снятие средств");
         } catch (HttpClientErrorException e) {
-            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
-            String reason = apiErrorDto.getMessage();
-            transaction.setStatus(TransactionStatus.FAILED);
-            transaction.setComment(reason);
-            transaction = cashTransactionJpaRepository.save(transaction);
-            notificationSender.send(createCashTransactionDto.getUserLogin(), WARNING, reason);
-        } catch (Throwable e) {
-            System.out.println(e.getMessage());
+            String reason = e.getResponseBodyAs(ApiErrorDto.class).getMessage();
+            transaction = updateTransactionStatus(transaction, FAILED, reason);
+            notificationSender.send(transaction.getUserLogin(), WARNING, reason);
+        } catch (Exception e) {
+            String reason = "Сервис валидации транзакций недоступен";
+            log.warn(reason, e);
+            transaction = updateTransactionStatus(transaction, FAILED, reason);
+            notificationSender.send(transaction.getUserLogin(), WARNING, reason);
         }
-        return CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
+        return transaction;
+    }
+
+    private CashTransaction updateTransactionStatus(CashTransaction transaction, TransactionStatus status, String comment) {
+        transaction.setStatus(status);
+        if (comment != null) {
+            transaction.setComment(comment);
+        }
+        return cashTransactionJpaRepository.save(transaction);
     }
 
 }

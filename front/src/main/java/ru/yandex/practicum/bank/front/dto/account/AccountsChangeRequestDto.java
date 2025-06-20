@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.yandex.practicum.bank.front.enums.AccountStateChangeRequest;
 import ru.yandex.practicum.bank.front.enums.Currency;
 
 @Data

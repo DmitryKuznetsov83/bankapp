@@ -7,7 +7,7 @@ import ru.yandex.practicum.bank.blocker.dto.TransferTransactionDto;
 import ru.yandex.practicum.bank.blocker.service.BlockerService;
 
 @RestController
-@RequestMapping("/blocker")
+@RequestMapping("/blockers")
 public class BlockerController {
 
     private final BlockerService blockerService;
@@ -17,14 +17,14 @@ public class BlockerController {
         this.blockerService = blockerService;
     }
 
-    @PostMapping("/cash-transactions")
-    Boolean blockCashTransaction(@RequestBody CashTransactionDto cashTransactionDto) {
-        return blockerService.blockCashTransaction(cashTransactionDto);
+    @PostMapping("/cash-transactions/validate")
+    Boolean validateCashTransaction(@RequestBody CashTransactionDto cashTransactionDto) {
+        return blockerService.validateCashTransaction(cashTransactionDto);
     }
 
-    @PostMapping("/transfer-transactions")
-    Boolean blockTransferTransaction(@RequestBody TransferTransactionDto transferTransactionDto) {
-        return blockerService.blockTransferTransaction(transferTransactionDto);
+    @PostMapping("/transfer-transactions/validate")
+    Boolean validateTransferTransaction(@RequestBody TransferTransactionDto transferTransactionDto) {
+        return blockerService.validateTransferTransaction(transferTransactionDto);
     }
 
 }

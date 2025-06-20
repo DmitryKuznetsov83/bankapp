@@ -54,11 +54,11 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new UserNotFoundException(login));
         List<Account> accounts = accountJpaRepository.findByOwner(user);
 
-        Map<Currency, Qwe> asd = accountsChangeRequestDtoList
+        Map<Currency, AccountOperationResolver> asd = accountsChangeRequestDtoList
                 .stream()
                 .collect(Collectors.toMap(
                         AccountsChangeRequestDto::getCurrency,
-                        e -> new Qwe(e.getAccountChangeRequest())
+                        e -> new AccountOperationResolver(e.getAccountChangeRequest())
                 ));
 
         for (Account account : accounts) {
@@ -70,7 +70,7 @@ public class AccountServiceImpl implements AccountService {
             } );
         }
 
-        asd.values().forEach(Qwe::calculateAccountOperation);
+        asd.values().forEach(AccountOperationResolver::calculateAccountOperation);
 
         Set<Currency> errors = asd.entrySet().stream()
                 .filter(e -> AccountOperation.ERROR.equals(e.getValue().accountOperation))
@@ -82,7 +82,7 @@ public class AccountServiceImpl implements AccountService {
         }
 
         List<Account> accountsToUpdate = new ArrayList<>();
-        for (Map.Entry<Currency, Qwe> entry : asd.entrySet() ) {
+        for (Map.Entry<Currency, AccountOperationResolver> entry : asd.entrySet() ) {
             if (entry.getValue().accountOperation == AccountOperation.CREATE) {
                 Account newAccount = Account.builder()
                         .owner(user)
@@ -111,7 +111,17 @@ public class AccountServiceImpl implements AccountService {
 
     }
 
-    private static class Qwe {
+//    AccountChangeRequest	CurrentState	          AccountOperation
+//    Open	                X	                      Create
+//    Open	                ActiveWithZeroBalance	  -
+//    Open	                ActiveWithNonZeroBalance  -
+//    Open	                INACTIVE	              Reopen
+//    Close	                X	                      -
+//    Close	                ActiveWithZeroBalance	  Close
+//    Close	                ActiveWithNonZeroBalance  Error
+//    Close	                INACTIVE	              -
+
+    private static class AccountOperationResolver {
 
         AccountStateChangeRequest accountStateChangeRequest;
         AccountState accountState;
@@ -119,7 +129,7 @@ public class AccountServiceImpl implements AccountService {
         BigDecimal accountBalance;
         AccountOperation accountOperation;
 
-        public Qwe(AccountStateChangeRequest accountStateChangeRequest) {
+        public AccountOperationResolver(AccountStateChangeRequest accountStateChangeRequest) {
             this.accountStateChangeRequest = accountStateChangeRequest;
         }
 

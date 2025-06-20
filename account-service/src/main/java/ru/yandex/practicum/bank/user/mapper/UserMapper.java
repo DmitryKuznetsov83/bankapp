@@ -14,8 +14,7 @@ public interface UserMapper {
 
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
-    @Mapping(target = "passwordHash", source = "password")
-    User toUser(CreateUserDto createUserDto);
+    User toUser(UserDto userDto);
 
     UserDto toUserDto(User user);
 

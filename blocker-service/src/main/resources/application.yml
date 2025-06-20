@@ -7,7 +7,7 @@ server:
 
 blocker:
   min-threshold: 10
-  max-threshold: 1000
+  max-threshold: 10000
 
 #management:
 #  endpoints:

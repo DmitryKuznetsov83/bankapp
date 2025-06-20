@@ -2,15 +2,17 @@ package ru.yandex.practicum.bank.cash.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.cash.dto.CashTransactionDto;
 import ru.yandex.practicum.bank.cash.dto.CreateCashTransactionDto;
-import ru.yandex.practicum.bank.cash.enums.TransactionStatus;
 import ru.yandex.practicum.bank.cash.exception.UnsuccessfulTransactionException;
 import ru.yandex.practicum.bank.cash.service.CashTransactionService;
 
 import java.util.List;
+
+import static ru.yandex.practicum.bank.cash.enums.TransactionStatus.*;
 
 @RestController
 @RequestMapping("/cash-transactions")
@@ -30,9 +32,10 @@ public class CashTransactionController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public CashTransactionDto createCashTransaction(@RequestBody @Valid CreateCashTransactionDto createCashTransactionDto) {
         CashTransactionDto cashTransactionDto = cashTransactionService.createCashTransaction(createCashTransactionDto);
-        if (!TransactionStatus.SUCCESS.equals(cashTransactionDto.getStatus())) {
+        if (!SUCCESS.equals(cashTransactionDto.getStatus())) {
             throw new UnsuccessfulTransactionException(cashTransactionDto.getComment());
         } else {
             return cashTransactionDto;

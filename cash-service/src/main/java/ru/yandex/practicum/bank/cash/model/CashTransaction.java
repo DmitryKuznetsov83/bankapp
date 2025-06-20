@@ -33,13 +33,6 @@ public class CashTransaction {
 
     private String comment;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    private Instant updatedAt;
-
     String userLogin;
 
     @Enumerated(EnumType.STRING)
@@ -51,5 +44,12 @@ public class CashTransaction {
     private CashTransactionType type;
 
     private BigDecimal sum;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
 
 }

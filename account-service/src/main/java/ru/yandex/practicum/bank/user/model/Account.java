@@ -2,11 +2,14 @@ package ru.yandex.practicum.bank.user.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 import ru.yandex.practicum.bank.user.enums.AccountState;
 import ru.yandex.practicum.bank.user.enums.Currency;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -36,5 +39,12 @@ public class Account {
     private AccountState state;
 
     private BigDecimal balance;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
 
 }

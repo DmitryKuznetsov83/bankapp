@@ -32,13 +32,6 @@ public class TransferTransaction {
 
     private String comment;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    private Instant updatedAt;
-
     String fromLogin;
 
     String toLogin;
@@ -54,5 +47,12 @@ public class TransferTransaction {
     private BigDecimal fromSum;
 
     private BigDecimal toSum;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
 
 }

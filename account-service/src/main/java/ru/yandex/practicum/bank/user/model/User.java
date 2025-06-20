@@ -1,10 +1,9 @@
 package ru.yandex.practicum.bank.user.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.Instant;
@@ -22,11 +21,17 @@ public class User {
     @GeneratedValue
     @UuidGenerator
     private UUID id;
+
     private String login;
     private String passwordHash;
     private String name;
     private LocalDate birthdate;
+
+    @CreationTimestamp
+    @Column(updatable = false)
     private Instant createdAt;
+
+    @UpdateTimestamp
     private Instant updatedAt;
 
 }

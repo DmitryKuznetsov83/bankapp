@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.bank.user.dto.user.*;
 import ru.yandex.practicum.bank.user.exception.user.LoginAlreadyUsedException;
-import ru.yandex.practicum.bank.user.exception.user.PasswordAndConfirmationDoNotMatchException;
-import ru.yandex.practicum.bank.user.exception.user.PasswordIsSameAsPreviousException;
 import ru.yandex.practicum.bank.user.exception.user.UserNotFoundException;
 import ru.yandex.practicum.bank.user.mapper.UserMapper;
 import ru.yandex.practicum.bank.user.model.User;
@@ -26,23 +24,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto creatUser(CreateUserDto createUserDto) {
-        String login = createUserDto.getLogin();
+    public UserDto creatUser(UserDto userDto) {
+        String login = userDto.getLogin();
 
         if (userJpaRepository.existsByLogin(login)) {
             throw new LoginAlreadyUsedException(login);
         }
-        if (!createUserDto.getPassword().equals(createUserDto.getConfirmPassword())) {
-            throw new PasswordAndConfirmationDoNotMatchException(login);
-        }
 
-        User newUser = UserMapper.INSTANCE.toUser(createUserDto);
+        User newUser = UserMapper.INSTANCE.toUser(userDto);
         try {
             User savedUser = userJpaRepository.save(newUser);
             return UserMapper.INSTANCE.toUserDto(savedUser);
         } catch (DataIntegrityViolationException e) {
             if (isDuplicateLoginError(e)) {
-                throw new LoginAlreadyUsedException(createUserDto.getLogin());
+                throw new LoginAlreadyUsedException(userDto.getLogin());
             }
             throw e;
         }
@@ -62,25 +57,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateUserPassword(String login, UpdateUserPasswordDto updateUserPasswordDto) {
-        if (!updateUserPasswordDto.getPassword().equals(updateUserPasswordDto.getConfirmPassword())) {
-            throw new PasswordAndConfirmationDoNotMatchException(login);
-        }
         User user = userJpaRepository.findByLogin(login)
                 .orElseThrow(() -> new UserNotFoundException(login));
-        if (user.getPasswordHash().equals(updateUserPasswordDto.getPassword())) {
-            throw new PasswordIsSameAsPreviousException();
-        }
 
-        user.setPasswordHash(updateUserPasswordDto.getPassword());
+        user.setPasswordHash(updateUserPasswordDto.getPasswordHash());
         userJpaRepository.save(user);
-    }
-
-    @Override
-    @Transactional
-    public void deleteUser(String login) {
-        User user = userJpaRepository.findByLogin(login)
-                .orElseThrow(() -> new UserNotFoundException(login));
-        userJpaRepository.deleteById(user.getId());
     }
 
     @Override

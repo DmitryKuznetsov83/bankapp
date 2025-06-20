@@ -52,7 +52,7 @@ public class RateServiceImpl implements RateService {
 
         Optional<BigDecimal> fromCurrencyRate = latestRates.stream()
                 .filter(e -> fromCurrency.equals(e.getCurrency()))
-                .findFirst()  // Более предсказуемо, чем findAny()
+                .findFirst()
                 .map(CurrencyRate::getRate);
 
         Optional<BigDecimal> toCurrencyRate = latestRates.stream()

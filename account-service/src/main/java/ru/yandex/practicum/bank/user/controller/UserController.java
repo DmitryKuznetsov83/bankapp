@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.bank.user.dto.*;
+import ru.yandex.practicum.bank.common.dto.ApiErrorDto;
 import ru.yandex.practicum.bank.user.dto.user.*;
 import ru.yandex.practicum.bank.user.exception.user.*;
 import ru.yandex.practicum.bank.user.service.UserService;
@@ -25,8 +25,9 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto creatUser(@RequestBody @Valid CreateUserDto createUserDto) {
-        return userService.creatUser(createUserDto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto creatUser(@RequestBody @Valid UserDto userDto) {
+        return userService.creatUser(userDto);
     }
 
     @PutMapping("/{login}")
@@ -39,11 +40,6 @@ public class UserController {
         userService.updateUserPassword(login, updateUserPasswordDto);
     }
 
-    @DeleteMapping("/{login}")
-    public void deleteUser(@PathVariable String login) {
-        userService.deleteUser(login);
-    }
-
     @GetMapping("/{login}")
     public UserDto getUser(@PathVariable String login) {
         return userService.getUser(login);
@@ -52,32 +48,6 @@ public class UserController {
     @GetMapping
     public List<ShortUserDto> getUsers() {
         return userService.getUsers();
-    }
-
-
-    // EXCEPTIONS
-    @ExceptionHandler({UserNotIsOfLegalAgeException.class})
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiErrorDto handleUserNotIsOfLegalAgeException(final UserNotIsOfLegalAgeException exception) {
-        return GlobalExceptionHandler.getApiError(exception, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler({LoginAlreadyUsedException.class})
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiErrorDto handleLoginAlreadyUsedException(final LoginAlreadyUsedException exception) {
-        return GlobalExceptionHandler.getApiError(exception, HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler({PasswordAndConfirmationDoNotMatchException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiErrorDto handlePasswordAndConfirmationDoNotMatchException(final PasswordAndConfirmationDoNotMatchException exception) {
-        return GlobalExceptionHandler.getApiError(exception, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler({PasswordIsSameAsPreviousException.class})
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiErrorDto handlePasswordIsSameIsPreviousException(final PasswordIsSameAsPreviousException exception) {
-        return GlobalExceptionHandler.getApiError(exception, HttpStatus.CONFLICT);
     }
 
 }

@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.yandex.practicum.bank.front.dto.*;
-import ru.yandex.practicum.bank.front.dto.account.AccountDto;
-import ru.yandex.practicum.bank.front.dto.account.AccountsChangeRequestDto;
+import ru.yandex.practicum.bank.common.dto.ApiErrorDto;
+import ru.yandex.practicum.bank.front.dto.account.*;
 import ru.yandex.practicum.bank.front.dto.transaction.CreateCashTransactionDto;
 import ru.yandex.practicum.bank.front.dto.transaction.CreateTransferTransactionDto;
 import ru.yandex.practicum.bank.front.dto.user.*;
@@ -27,17 +27,18 @@ import ru.yandex.practicum.bank.front.security.AppUserDetails;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Controller
-public class MainController {
+public class FrontController {
 
     private final RestClient restClient = RestClient.create();
     private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public MainController(UserDetailsService userDetailsService) {
+    public FrontController(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -48,6 +49,9 @@ public class MainController {
         model.addAttribute("name", appUserDetails.getName());
         model.addAttribute("birthdate", appUserDetails.getBirthdate());
 
+        // currencies
+        model.addAttribute("currency", Currency.values());
+
         // accounts
         try {
             List<AccountDto> accountDtos = restClient
@@ -55,20 +59,20 @@ public class MainController {
                     .uri("http://localhost:8082/accounts/"+appUserDetails.getUsername())
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<AccountDto>>() {});
-            List<AccountRepresentation> list = accountDtos.stream()
-                    .map(a -> new AccountRepresentation(a.getCurrency(), a.getState(), a.getBalance()))
+            List<AccountView> list = accountDtos.stream()
+                    .map(a -> new AccountView(a.getCurrency(), a.getState(), a.getBalance()))
                     .toList();
-            Map<Currency, AccountRepresentation> collect = list.stream().collect(Collectors.toMap(l -> l.getCurrency(), l -> l));
+            Map<Currency, AccountView> collect = list.stream().collect(Collectors.toMap(l -> l.getCurrency(), l -> l));
 
             Arrays.stream(Currency.values()).forEach(c -> {
                 if (!collect.containsKey(c)) {
-                    collect.put(c, new AccountRepresentation(c, AccountState.NOT_EXISTS, BigDecimal.ZERO));
+                    collect.put(c, new AccountView(c, AccountState.NOT_EXISTS, BigDecimal.ZERO));
                 }
             });
 
-            List<AccountRepresentation> accountRepresentations = new ArrayList<>(collect.values());
+            List<AccountView> accountRepresentations = new ArrayList<>(collect.values());
             accountRepresentations.sort(Comparator.comparing(
-                    AccountRepresentation::getCurrency,
+                    AccountView::getCurrency,
                     Comparator.comparingInt(Enum::ordinal)));
             model.addAttribute("accountRepresentations", accountRepresentations);
 
@@ -77,9 +81,7 @@ public class MainController {
             model.addAttribute("userAccountsErrors", List.of(apiErrorDto.getMessage()));
         }
 
-        model.addAttribute("currency", Currency.values());
-
-
+        // users (correspondents)
         List<ShortUserDto> shortUserDtos = new ArrayList<>();
         try {
             shortUserDtos = restClient
@@ -91,7 +93,6 @@ public class MainController {
         } catch (Throwable e) {
             model.addAttribute("externalTransferErrors", List.of("Список пользователей недоступен"));
         }
-
         model.addAttribute("users", shortUserDtos);
 
         return "main";
@@ -102,33 +103,25 @@ public class MainController {
         return "redirect:/main";
     }
 
-    @GetMapping("/signup")
-    public String getSignupPage() {
-        return "signup";
-    }
-
-    @PostMapping("/signup")
-    public String createNewUser(Model model, @ModelAttribute CreateUserDto createUserDto) {
-        try {
-            restClient
-                    .post()
-                    .uri("http://localhost:8082/users")
-                    .body(createUserDto)
-                    .retrieve()
-                    .body(UserDto.class);
-            return "redirect:/login";
-        } catch (HttpClientErrorException e) {
-            ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
-            model.addAttribute("errors", List.of(apiErrorDto.getMessage()));
-            return "signup";
-        }
-    }
 
     @PostMapping("/user/editPassword")
     public String changeUserPassword(@AuthenticationPrincipal AppUserDetails appUserDetails,
                                      Model model,
-                                     @ModelAttribute UpdateUserPasswordDto updateUserPasswordDto,
+                                     @ModelAttribute UpdateUserPasswordForm updateUserPasswordForm,
                                      RedirectAttributes redirectAttributes) {
+
+        String password = updateUserPasswordForm.getPassword();
+        String confirmPassword = updateUserPasswordForm.getConfirmPassword();
+
+        if (!password.equals(confirmPassword)) {
+            model.addAttribute("errors", "Пароль и подтверждение на совпадают");
+            redirectAttributes.addFlashAttribute("passwordErrors", "Пароль и подтверждение на совпадают");
+            return "redirect:/main";
+        }
+
+        String passwordHash = passwordEncoder.encode(password);
+        UpdateUserPasswordDto updateUserPasswordDto = new UpdateUserPasswordDto(passwordHash);
+
         try {
             restClient
                     .put()
@@ -175,17 +168,20 @@ public class MainController {
     @PostMapping("/accounts/changeState")
     public String changeAccountsState(@AuthenticationPrincipal AppUserDetails appUserDetails,
                                       Model model,
-                                      @ModelAttribute AccountStateChangeForm form,
+                                      @ModelAttribute AccountsStateChangeForm accountsStateChangeForm,
                                       RedirectAttributes redirectAttributes) {
 
-        List<AccountStateChangeInterfaceDto> accountsIner = form.getAccounts();
-        Stream<AccountsChangeRequestDto> accounts = accountsIner.stream().map(q -> new AccountsChangeRequestDto(q.isActive(), q.getCurrency()));
+        List<AccountsChangeRequestDto> accountsChangeRequestDto = accountsStateChangeForm
+                .getAccounts()
+                .stream()
+                .map(q -> new AccountsChangeRequestDto(q.isActive(), q.getCurrency()))
+                .toList();
 
         try {
             restClient
                     .post()
-                    .uri("http://localhost:8082/accounts/" + appUserDetails.getLogin())
-                    .body(accounts)
+                    .uri("http://localhost:8082/accounts/change-requests/" + appUserDetails.getLogin())
+                    .body(accountsChangeRequestDto)
                     .retrieve()
                     .body(new ParameterizedTypeReference<List<AccountDto>>() {});
         } catch (HttpClientErrorException e) {
@@ -196,8 +192,8 @@ public class MainController {
         return "redirect:/main";
     }
 
-    @PostMapping("/user/cash")
-    public String processCashTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
+    @PostMapping("/transaction/cash-transaction")
+    public String createCashTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
                                       Model model,
                                       @ModelAttribute CreateCashTransactionDto createCashTransactionDto,
                                       RedirectAttributes redirectAttributes) {
@@ -221,8 +217,8 @@ public class MainController {
         return "redirect:/main";
     }
 
-    @PostMapping("/user/self-transfer")
-    public String processSelfTransferTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
+    @PostMapping("/transaction/external-transfer-transaction")
+    public String createSelfTransferTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
                                          Model model,
                                          @ModelAttribute CreateTransferTransactionDto createTransferTransactionDto,
                                          RedirectAttributes redirectAttributes) {
@@ -247,8 +243,8 @@ public class MainController {
         return "redirect:/main";
     }
 
-    @PostMapping("/user/external-transfer")
-    public String processExternalTransferTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
+    @PostMapping("/transaction/self-transfer-transaction")
+    public String createExternalTransferTransaction(@AuthenticationPrincipal AppUserDetails appUserDetails,
                                                  Model model,
                                                  @ModelAttribute CreateTransferTransactionDto creatTransferTransactionDto,
                                                  RedirectAttributes redirectAttributes) {

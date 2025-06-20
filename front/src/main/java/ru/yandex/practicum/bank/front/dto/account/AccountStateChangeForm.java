@@ -1,4 +1,4 @@
-package ru.yandex.practicum.bank.front.dto.user;
+package ru.yandex.practicum.bank.front.dto.account;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateUserPasswordDto {
-
-    private String passwordHash;
-
+public class AccountStateChangeForm {
+    private String currency;
+    private boolean active;
 }

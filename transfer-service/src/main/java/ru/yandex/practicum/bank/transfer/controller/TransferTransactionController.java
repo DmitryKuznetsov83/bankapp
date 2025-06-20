@@ -1,6 +1,7 @@
 package ru.yandex.practicum.bank.transfer.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.transfer.dto.CreateTransferTransactionDto;
@@ -10,6 +11,8 @@ import ru.yandex.practicum.bank.transfer.exception.UnsuccessfulTransactionExcept
 import ru.yandex.practicum.bank.transfer.service.TransferTransactionService;
 
 import java.util.List;
+
+import static ru.yandex.practicum.bank.transfer.enums.TransactionStatus.*;
 
 @RestController
 @RequestMapping("/transfer-transactions")
@@ -28,9 +31,10 @@ public class TransferTransactionController {
     }
 
     @PostMapping("/self-transactions")
+    @ResponseStatus(HttpStatus.CREATED)
     public TransferTransactionDto createSelfTransferTransaction(@RequestBody @Valid CreateTransferTransactionDto createTransferTransactionDto) {
         TransferTransactionDto transferTransactionDto = transferTransactionService.createTransferTransaction(createTransferTransactionDto);
-        if (!TransactionStatus.SUCCESS.equals(transferTransactionDto.getStatus())) {
+        if (!SUCCESS.equals(transferTransactionDto.getStatus())) {
             throw new UnsuccessfulTransactionException(transferTransactionDto.getComment());
         } else {
             return transferTransactionDto;
@@ -38,9 +42,10 @@ public class TransferTransactionController {
     }
 
     @PostMapping("/external-transactions")
+    @ResponseStatus(HttpStatus.CREATED)
     public TransferTransactionDto createExternalTransferTransaction(@RequestBody @Valid CreateTransferTransactionDto createTransferTransactionDto) {
         TransferTransactionDto transferTransactionDto = transferTransactionService.createTransferTransaction(createTransferTransactionDto);
-        if (!TransactionStatus.SUCCESS.equals(transferTransactionDto.getStatus())) {
+        if (!SUCCESS.equals(transferTransactionDto.getStatus())) {
             throw new UnsuccessfulTransactionException(transferTransactionDto.getComment());
         } else {
             return transferTransactionDto;

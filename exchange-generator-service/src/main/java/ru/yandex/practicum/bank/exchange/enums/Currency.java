@@ -1,17 +1,17 @@
 package ru.yandex.practicum.bank.exchange.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum Currency {
     RUB("Рубли"),
     USD("Доллары"),
     CNY("Юани");
 
-    private final String currencyName;
+    private final String title;
 
-    Currency(String currencyName) {
-        this.currencyName = currencyName;
+    Currency(String title) {
+        this.title = title;
     }
 
-    public static String getCurrencyName(Currency currency) {
-        return currency.currencyName;
-    }
 }
