@@ -11,17 +11,17 @@ import ru.yandex.practicum.bank.front.mapper.UserMapper;
 
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final RestTemplate internalRestTemplate;
+    private final RestTemplate externalRestTemplate;
 
-    public UserDetailsServiceImpl(RestTemplate internalRestTemplate) {
-        this.internalRestTemplate = internalRestTemplate;
+    public UserDetailsServiceImpl(RestTemplate externalRestTemplate) {
+        this.externalRestTemplate = externalRestTemplate;
     }
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         try {
-            UserDto userDto = internalRestTemplate
-                    .getForObject("lb://account-service/users/" + login, UserDto.class);
+            UserDto userDto = externalRestTemplate
+                    .getForObject("http://localhost:8080/api/account-service/users/" + login, UserDto.class);
             return UserMapper.INSTANCE.toAppUser(userDto);
         } catch (HttpClientErrorException.NotFound exception) {
             throw new UsernameNotFoundException(login);

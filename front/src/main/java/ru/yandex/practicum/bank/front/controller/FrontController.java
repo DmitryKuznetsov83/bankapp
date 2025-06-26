@@ -33,15 +33,15 @@ import java.util.stream.Collectors;
 @Controller
 public class FrontController {
 
-    private final RestTemplate internalRestTemplate;
+    private final RestTemplate externalRestTemplate;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public FrontController(RestTemplate internalRestTemplate,
+    public FrontController(RestTemplate externalRestTemplate,
                            UserDetailsService userDetailsService,
                            PasswordEncoder passwordEncoder) {
-        this.internalRestTemplate = internalRestTemplate;
+        this.externalRestTemplate = externalRestTemplate;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -59,9 +59,9 @@ public class FrontController {
 
         // accounts
         try {
-            List<AccountDto> accountDtos = internalRestTemplate
+            List<AccountDto> accountDtos = externalRestTemplate
                     .exchange(
-                            "lb://account-service/accounts/" + appUserDetails.getUsername(),
+                            "http://localhost:8080/api/account-service/accounts/" + appUserDetails.getUsername(),
                             HttpMethod.GET, null, new ParameterizedTypeReference<List<AccountDto>>() {
                             })
                     .getBody();
@@ -90,9 +90,9 @@ public class FrontController {
         // users (correspondents)
         List<ShortUserDto> shortUserDtos = new ArrayList<>();
         try {
-            shortUserDtos = internalRestTemplate
+            shortUserDtos = externalRestTemplate
                     .exchange(
-                            "lb://account-service/users",
+                            "http://localhost:8080/api/account-service/users",
                             HttpMethod.GET, null, new ParameterizedTypeReference<List<ShortUserDto>>() {})
                     .getBody();
 
@@ -129,8 +129,8 @@ public class FrontController {
         UpdateUserPasswordDto updateUserPasswordDto = new UpdateUserPasswordDto(passwordHash);
 
         try {
-            internalRestTemplate.put(
-                    "lb://account-service/users/" + appUserDetails.getLogin() + "/password",
+            externalRestTemplate.put(
+                    "http://localhost:8080/api/account-service/users/" + appUserDetails.getLogin() + "/password",
                     updateUserPasswordDto
             );
         } catch (HttpClientErrorException e) {
@@ -146,7 +146,7 @@ public class FrontController {
                                      @ModelAttribute UpdateUserDto updateUserDto,
                                      RedirectAttributes redirectAttributes) {
         try {
-            internalRestTemplate.put("lb://account-service/users/" + appUserDetails.getLogin(), updateUserDto);
+            externalRestTemplate.put("http://localhost:8080/api/account-service/users/" + appUserDetails.getLogin(), updateUserDto);
 
             AppUserDetails newDetails = (AppUserDetails) userDetailsService.loadUserByUsername(appUserDetails.getUsername());
 
@@ -177,8 +177,8 @@ public class FrontController {
                 .toList();
 
         try {
-            List<AccountDto> accountDtos = internalRestTemplate.exchange(
-                    "lb://account-service/accounts/change-requests/" + appUserDetails.getLogin(),
+            List<AccountDto> accountDtos = externalRestTemplate.exchange(
+                    "http://localhost:8080/api/account-service/accounts/change-requests/" + appUserDetails.getLogin(),
                     HttpMethod.POST,
                     new HttpEntity<>(accountsChangeRequestDto),
                     new ParameterizedTypeReference<List<AccountDto>>() {}
@@ -201,8 +201,8 @@ public class FrontController {
         createCashTransactionDto.setUserLogin(appUserDetails.getLogin());
 
         try {
-            internalRestTemplate
-                    .postForEntity("lb://cash-service/cash-transactions", createCashTransactionDto, Void.class);
+            externalRestTemplate
+                    .postForEntity("http://localhost:8080/api/cash-service/cash-transactions", createCashTransactionDto, Void.class);
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
             redirectAttributes.addFlashAttribute("cashErrors", List.of(apiErrorDto.getMessage()));
@@ -223,8 +223,8 @@ public class FrontController {
         createTransferTransactionDto.setToLogin(appUserDetails.getLogin());
 
         try {
-            internalRestTemplate
-                    .postForEntity("lb://transfer-service/transfer-transactions/self-transactions",
+            externalRestTemplate
+                    .postForEntity("http://localhost:8080/api/transfer-service/transfer-transactions/self-transactions",
                             createTransferTransactionDto, Void.class);
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
@@ -245,8 +245,8 @@ public class FrontController {
         creatTransferTransactionDto.setFromLogin(appUserDetails.getLogin());
 
         try {
-            internalRestTemplate
-                    .postForEntity("lb://transfer-service/transfer-transactions/external-transactions",
+            externalRestTemplate
+                    .postForEntity("http://localhost:8080/api/transfer-service/transfer-transactions/external-transactions",
                             creatTransferTransactionDto, Void.class);
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);

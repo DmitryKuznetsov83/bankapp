@@ -28,7 +28,7 @@ public class NotificationOutboxProcessor {
 
         if (!notificationsDto.isEmpty()) {
             internalRestTemplate
-                    .postForEntity("lb://notification-service/notifications", notificationsDto, Void.class);
+                    .postForEntity("lb://api-gateway/api/notification-service/notifications", notificationsDto, Void.class);
             notificationJpaRepository.deleteAll(notifications);
         }
     }

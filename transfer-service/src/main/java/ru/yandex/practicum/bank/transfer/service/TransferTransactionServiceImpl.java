@@ -73,7 +73,7 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
         }
 
         try {
-            String url = UriComponentsBuilder.fromUriString("lb://exchange-service/rates/relative")
+            String url = UriComponentsBuilder.fromUriString("lb://api-gateway/api/exchange-service/rates/relative")
                     .queryParam("fromCurrency", transaction.getFromCurrency())
                     .queryParam("toCurrency", transaction.getToCurrency())
                     .toUriString();
@@ -102,7 +102,7 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
         try {
             TransferTransactionDto transferTransactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
             Boolean blocked = internalRestTemplate
-                    .postForObject("lb://blocker-service/blockers/transfer-transactions/validate", transferTransactionDto, Boolean.class);
+                    .postForObject("lb://api-gateway/api/blocker-service/blockers/transfer-transactions/validate", transferTransactionDto, Boolean.class);
             if (Boolean.TRUE.equals(blocked)) {
                 String reason = "Транзакция заблокирована как подозрительная";
                 transaction = updateTransactionStatus(transaction, FAILED, reason);
@@ -118,7 +118,7 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
         try {
             TransferTransactionDto transferTransactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
             internalRestTemplate
-                    .postForEntity("lb://account-service/transactions/transfer-transactions/validate", transferTransactionDto, Void.class);
+                    .postForEntity("lb://api-gateway/api/account-service/transactions/transfer-transactions/validate", transferTransactionDto, Void.class);
             transaction = updateTransactionStatus(transaction, SUCCESS, null);
             notificationSender.send(transaction.getFromLogin(), INFO, "Успешный перевод средств");
         } catch (HttpClientErrorException e) {

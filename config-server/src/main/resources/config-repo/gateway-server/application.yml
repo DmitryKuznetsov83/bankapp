@@ -1,0 +1,61 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: account-service-route
+              uri: lb://account-service
+              predicates:
+                - Path=/api/account-service/**
+              filters:
+                - StripPrefix=2
+
+            - id: blocker-service-route
+              uri: lb://blocker-service
+              predicates:
+                - Path=/api/blocker-service/**
+              filters:
+                - StripPrefix=2
+
+            - id: cash-service-route
+              uri: lb://cash-service
+              predicates:
+                - Path=/api/cash-service/**
+              filters:
+                - StripPrefix=2
+
+            - id: exchange-service-route
+              uri: lb://exchange-service
+              predicates:
+                - Path=/api/exchange-service/**
+              filters:
+                - StripPrefix=2
+
+            - id: notification-service-route
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/notification-service/**
+              filters:
+                - StripPrefix=2
+
+            - id: transfer-service-route
+              uri: lb://transfer-service
+              predicates:
+                - Path=/api/transfer-service/**
+              filters:
+                - StripPrefix=2
+
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health, info
+#  endpoint:
+#    health:
+#      show-details: always

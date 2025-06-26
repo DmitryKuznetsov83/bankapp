@@ -65,7 +65,7 @@ public class CashTransactionServiceImpl implements CashTransactionService {
         try {
             CashTransactionDto cashTransactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
             Boolean blocked = internalRestTemplate
-                    .postForObject("lb://blocker-service/blockers/cash-transactions/validate", cashTransactionDto, Boolean.class);
+                    .postForObject("lb://api-gateway/api/blocker-service/blockers/cash-transactions/validate", cashTransactionDto, Boolean.class);
             if (Boolean.TRUE.equals(blocked)) {
                 String reason = "Транзакция заблокирована как подозрительная";
                 transaction = updateTransactionStatus(transaction, FAILED, reason);
@@ -81,7 +81,7 @@ public class CashTransactionServiceImpl implements CashTransactionService {
         try {
             CashTransactionDto cashTransactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
             internalRestTemplate
-                    .postForObject("lb://account-service/transactions/cash-transactions/validate", cashTransactionDto, Void.class);
+                    .postForObject("lb://api-gateway/api/account-service/transactions/cash-transactions/validate", cashTransactionDto, Void.class);
             transaction = updateTransactionStatus(transaction, SUCCESS, null);
             notificationSender.send(transaction.getUserLogin(), INFO, "Успешное снятие средств");
         } catch (HttpClientErrorException e) {

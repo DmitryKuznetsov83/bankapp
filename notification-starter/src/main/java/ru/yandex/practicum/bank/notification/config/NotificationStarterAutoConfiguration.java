@@ -15,9 +15,9 @@ import ru.yandex.practicum.bank.notification.service.NotificationSender;
 public class NotificationStarterAutoConfiguration {
 
     @Bean
-    public NotificationOutboxProcessor notificationOutboxProcessor(RestTemplate restTemplate,
+    public NotificationOutboxProcessor notificationOutboxProcessor(RestTemplate internalRestTemplate,
                                                                    NotificationJpaRepository notificationJpaRepository) {
-        return new NotificationOutboxProcessor(restTemplate, notificationJpaRepository);
+        return new NotificationOutboxProcessor(internalRestTemplate, notificationJpaRepository);
     }
 
     @Bean

@@ -44,7 +44,7 @@ public class ScheduledTaskService {
 
         try {
             internalRestTemplate
-                    .postForEntity("lb://exchange-service/rates", rates, Void.class);
+                    .postForEntity("lb://api-gateway/api/exchange-service/rates", rates, Void.class);
         } catch (HttpClientErrorException e) {
             logger.warn("Error while sending rate request" + e.getResponseBodyAsString());
         } catch (Throwable e) {
