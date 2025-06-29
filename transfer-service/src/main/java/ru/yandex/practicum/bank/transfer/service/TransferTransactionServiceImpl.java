@@ -2,6 +2,10 @@ package ru.yandex.practicum.bank.transfer.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -20,6 +24,7 @@ import ru.yandex.practicum.bank.transfer.repository.TransferTransactionJpaReposi
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 
 import static ru.yandex.practicum.bank.notification.enums.NotificationLevel.INFO;
 import static ru.yandex.practicum.bank.notification.enums.NotificationLevel.WARNING;
@@ -101,9 +106,15 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
     private TransferTransaction checkBlocking(TransferTransaction transaction) {
         try {
             TransferTransactionDto transferTransactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
-            Boolean blocked = internalRestTemplate
-                    .postForObject("lb://api-gateway/api/blocker-service/blockers/transfer-transactions/validate", transferTransactionDto, Boolean.class);
-            if (Boolean.TRUE.equals(blocked)) {
+
+            ResponseEntity<Map<String, Boolean>> response = internalRestTemplate.exchange(
+                    "lb://api-gateway/api/blocker-service/blockers/transfer-transactions/validate",
+                    HttpMethod.POST,
+                    new HttpEntity<>(transferTransactionDto),
+                    new ParameterizedTypeReference<Map<String, Boolean>>() {}
+            );
+            Boolean isValid = response.getBody().get("valid");
+            if (Boolean.FALSE.equals(isValid)) {
                 String reason = "Транзакция заблокирована как подозрительная";
                 transaction = updateTransactionStatus(transaction, FAILED, reason);
                 notificationSender.send(transaction.getFromLogin(), WARNING, reason);

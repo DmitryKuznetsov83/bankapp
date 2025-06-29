@@ -17,18 +17,18 @@ public class BlockerServiceImpl implements BlockerService {
     }
 
     @Override
-    public Boolean validateCashTransaction(CashTransactionDto cashTransactionDto) {
+    public Boolean isValidTransaction(CashTransactionDto cashTransactionDto) {
         BigDecimal transactionSum = cashTransactionDto.getSum();
         BigDecimal min = blockerConfig.getMinThreshold();
         BigDecimal max = blockerConfig.getMaxThreshold();
-        return transactionSum.compareTo(min) < 0 || transactionSum.compareTo(max) > 0;
+        return transactionSum.compareTo(min) > 0 && transactionSum.compareTo(max) < 0;
     }
 
     @Override
-    public Boolean validateTransferTransaction(TransferTransactionDto transferTransactionDto) {
+    public Boolean isValidTransaction(TransferTransactionDto transferTransactionDto) {
         BigDecimal transactionSum = transferTransactionDto.getFromSum();
         BigDecimal min = blockerConfig.getMinThreshold();
         BigDecimal max = blockerConfig.getMaxThreshold();
-        return transactionSum.compareTo(min) < 0 || transactionSum.compareTo(max) > 0;
+        return transactionSum.compareTo(min) > 0 && transactionSum.compareTo(max) < 0;
     }
 }

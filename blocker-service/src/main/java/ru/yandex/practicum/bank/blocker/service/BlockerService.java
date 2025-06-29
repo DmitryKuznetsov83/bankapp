@@ -5,8 +5,8 @@ import ru.yandex.practicum.bank.blocker.dto.TransferTransactionDto;
 
 public interface BlockerService {
 
-    Boolean validateCashTransaction(CashTransactionDto cashTransactionDto);
+    Boolean isValidTransaction(CashTransactionDto cashTransactionDto);
 
-    Boolean validateTransferTransaction(TransferTransactionDto transferTransactionDto);
+    Boolean isValidTransaction(TransferTransactionDto transferTransactionDto);
 
 }
