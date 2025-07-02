@@ -2,7 +2,6 @@ package ru.yandex.practicum.bank.blocker.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.blocker.dto.CashTransactionDto;
 import ru.yandex.practicum.bank.blocker.dto.TransferTransactionDto;

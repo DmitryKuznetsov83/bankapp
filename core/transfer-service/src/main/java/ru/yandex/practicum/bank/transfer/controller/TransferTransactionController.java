@@ -6,7 +6,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.bank.transfer.dto.CreateTransferTransactionDto;
 import ru.yandex.practicum.bank.transfer.dto.TransferTransactionDto;
-import ru.yandex.practicum.bank.transfer.enums.TransactionStatus;
 import ru.yandex.practicum.bank.transfer.exception.UnsuccessfulTransactionException;
 import ru.yandex.practicum.bank.transfer.service.TransferTransactionService;
 

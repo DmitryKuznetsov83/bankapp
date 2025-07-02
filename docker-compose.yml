@@ -76,8 +76,8 @@ services:
       - backend-net
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
-#    ports:
-#      - "8080:8080"
+    ports:
+      - "8080:8080"
     depends_on:
       discovery-server:
         condition: service_healthy
