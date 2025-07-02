@@ -41,8 +41,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(RestTemplate internalRestTemplate) {
-        return new UserDetailsServiceImpl(internalRestTemplate);
+    public UserDetailsService userDetailsService(RestTemplate internalRestTemplate, BackendProperties backendProperties) {
+        return new UserDetailsServiceImpl(internalRestTemplate, backendProperties);
     }
 
     @Bean

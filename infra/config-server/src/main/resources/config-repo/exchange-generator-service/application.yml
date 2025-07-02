@@ -5,24 +5,14 @@ spring:
   application:
     name: exchange-generator-service
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    preferIpAddress: true
-    hostname: localhost
-    instance-id: "${spring.application.name}:${random.value}"
-    leaseRenewalIntervalInSeconds: 10
-
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health, info
-#  endpoint:
-#    health:
-#      show-details: always
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
 
 exchange:
   main-currency: RUB

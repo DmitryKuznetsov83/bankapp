@@ -18,6 +18,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.yandex.practicum.bank.common.dto.ApiErrorDto;
+import ru.yandex.practicum.bank.front.config.BackendProperties;
 import ru.yandex.practicum.bank.front.dto.account.*;
 import ru.yandex.practicum.bank.front.dto.transaction.CreateCashTransactionDto;
 import ru.yandex.practicum.bank.front.dto.transaction.CreateTransferTransactionDto;
@@ -36,14 +37,16 @@ public class FrontController {
     private final RestTemplate externalRestTemplate;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final BackendProperties backendProperties;
 
     @Autowired
     public FrontController(RestTemplate externalRestTemplate,
                            UserDetailsService userDetailsService,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder, BackendProperties backendProperties) {
         this.externalRestTemplate = externalRestTemplate;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.backendProperties = backendProperties;
     }
 
 
@@ -61,7 +64,7 @@ public class FrontController {
         try {
             List<AccountDto> accountDtos = externalRestTemplate
                     .exchange(
-                            "http://localhost:8080/api/account-service/accounts/" + appUserDetails.getUsername(),
+                            backendProperties.getUrl() + "/api/account-service/accounts/" + appUserDetails.getUsername(),
                             HttpMethod.GET, null, new ParameterizedTypeReference<List<AccountDto>>() {
                             })
                     .getBody();
@@ -85,6 +88,8 @@ public class FrontController {
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
             model.addAttribute("userAccountsErrors", List.of(apiErrorDto.getMessage()));
+        } catch (Throwable t) {
+            System.out.println(t);
         }
 
         // users (correspondents)
@@ -92,7 +97,7 @@ public class FrontController {
         try {
             shortUserDtos = externalRestTemplate
                     .exchange(
-                            "http://localhost:8080/api/account-service/users",
+                            backendProperties.getUrl() + "/api/account-service/users",
                             HttpMethod.GET, null, new ParameterizedTypeReference<List<ShortUserDto>>() {})
                     .getBody();
 
@@ -100,6 +105,8 @@ public class FrontController {
             model.addAttribute("externalTransferErrors", List.of("Список пользователей недоступен"));
         }
         model.addAttribute("users", shortUserDtos);
+
+        model.addAttribute("ratesUrl", backendProperties.getUrl() + "/api/exchange-service/rates");
 
         return "main";
     }
@@ -130,7 +137,7 @@ public class FrontController {
 
         try {
             externalRestTemplate.put(
-                    "http://localhost:8080/api/account-service/users/" + appUserDetails.getLogin() + "/password",
+                    backendProperties.getUrl() + "/api/account-service/users/" + appUserDetails.getLogin() + "/password",
                     updateUserPasswordDto
             );
         } catch (HttpClientErrorException e) {
@@ -146,7 +153,7 @@ public class FrontController {
                                      @ModelAttribute UpdateUserDto updateUserDto,
                                      RedirectAttributes redirectAttributes) {
         try {
-            externalRestTemplate.put("http://localhost:8080/api/account-service/users/" + appUserDetails.getLogin(), updateUserDto);
+            externalRestTemplate.put(backendProperties.getUrl() + "/api/account-service/users/" + appUserDetails.getLogin(), updateUserDto);
 
             AppUserDetails newDetails = (AppUserDetails) userDetailsService.loadUserByUsername(appUserDetails.getUsername());
 
@@ -178,7 +185,7 @@ public class FrontController {
 
         try {
             List<AccountDto> accountDtos = externalRestTemplate.exchange(
-                    "http://localhost:8080/api/account-service/accounts/change-requests/" + appUserDetails.getLogin(),
+                    backendProperties.getUrl() + "/api/account-service/accounts/change-requests/" + appUserDetails.getLogin(),
                     HttpMethod.POST,
                     new HttpEntity<>(accountsChangeRequestDto),
                     new ParameterizedTypeReference<List<AccountDto>>() {}
@@ -202,7 +209,7 @@ public class FrontController {
 
         try {
             externalRestTemplate
-                    .postForEntity("http://localhost:8080/api/cash-service/cash-transactions", createCashTransactionDto, Void.class);
+                    .postForEntity(backendProperties.getUrl() + "/api/cash-service/cash-transactions", createCashTransactionDto, Void.class);
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
             redirectAttributes.addFlashAttribute("cashErrors", List.of(apiErrorDto.getMessage()));
@@ -224,7 +231,7 @@ public class FrontController {
 
         try {
             externalRestTemplate
-                    .postForEntity("http://localhost:8080/api/transfer-service/transfer-transactions/self-transactions",
+                    .postForEntity(backendProperties.getUrl() + "/api/transfer-service/transfer-transactions/self-transactions",
                             createTransferTransactionDto, Void.class);
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
@@ -246,7 +253,7 @@ public class FrontController {
 
         try {
             externalRestTemplate
-                    .postForEntity("http://localhost:8080/api/transfer-service/transfer-transactions/external-transactions",
+                    .postForEntity(backendProperties.getUrl() + "/api/transfer-service/transfer-transactions/external-transactions",
                             creatTransferTransactionDto, Void.class);
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);

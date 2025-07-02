@@ -15,9 +15,9 @@ spring:
                 - Path=/api/account-service/**
               filters:
                 - StripPrefix=2
-                - name: CircuitBreaker
-                  args:
-                    name: standardCircuitBreaker
+#                - name: CircuitBreaker
+#                  args:
+#                    name: standardCircuitBreaker
 
             - id: blocker-service-route
               uri: lb://blocker-service
@@ -25,10 +25,10 @@ spring:
                 - Path=/api/blocker-service/**
               filters:
                 - StripPrefix=2
-                - name: CircuitBreaker
-                  args:
-                    name: standardCircuitBreaker
-                    fallbackUri: forward:/fallbacks/blocker
+#                - name: CircuitBreaker
+#                  args:
+#                    name: standardCircuitBreaker
+#                    fallbackUri: forward:/fallbacks/blocker
 
             - id: cash-service-route
               uri: lb://cash-service
@@ -36,9 +36,9 @@ spring:
                 - Path=/api/cash-service/**
               filters:
                 - StripPrefix=2
-                - name: CircuitBreaker
-                  args:
-                    name: standardCircuitBreaker
+#                - name: CircuitBreaker
+#                  args:
+#                    name: standardCircuitBreaker
 
             - id: exchange-service-route
               uri: lb://exchange-service
@@ -46,9 +46,9 @@ spring:
                 - Path=/api/exchange-service/**
               filters:
                 - StripPrefix=2
-                - name: CircuitBreaker
-                  args:
-                    name: standardCircuitBreaker
+#                - name: CircuitBreaker
+#                  args:
+#                    name: standardCircuitBreaker
 
             - id: notification-service-route
               uri: lb://notification-service
@@ -56,9 +56,9 @@ spring:
                 - Path=/api/notification-service/**
               filters:
                 - StripPrefix=2
-                - name: CircuitBreaker
-                  args:
-                    name: standardCircuitBreaker
+#                - name: CircuitBreaker
+#                  args:
+#                    name: standardCircuitBreaker
 
             - id: transfer-service-route
               uri: lb://transfer-service
@@ -66,26 +66,25 @@ spring:
                 - Path=/api/transfer-service/**
               filters:
                 - StripPrefix=2
-                - name: CircuitBreaker
-                  args:
-                    name: standardCircuitBreaker
+#                - name: CircuitBreaker
+#                  args:
+#                    name: standardCircuitBreaker
 
-resilience4j:
-  circuitbreaker:
-    instances:
-      standardCircuitBreaker:
-        registerHealthIndicator: true
-        slidingWindowSize: 5
-        minimumNumberOfCalls: 3
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
+#resilience4j:
+#  circuitbreaker:
+#    instances:
+#      standardCircuitBreaker:
+#        registerHealthIndicator: true
+#        slidingWindowSize: 5
+#        minimumNumberOfCalls: 3
+#        failureRateThreshold: 50
+#        waitDurationInOpenState: 10s
 
-
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health, info
-#  endpoint:
-#    health:
-#      show-details: always
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always

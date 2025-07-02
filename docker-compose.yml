@@ -1,0 +1,212 @@
+version: '3.1'
+
+networks:
+  backend-net:
+
+services:
+  bank_keycloak:
+    image: quay.io/keycloak/keycloak:26.1.3
+    container_name: bank_keycloak
+    networks:
+      - backend-net
+#    ports:
+#      - "8082:8080"
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    command:
+      - start-dev
+      - --import-realm
+      - /opt/keycloak/data/import/realm-export.json
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+
+  bank-db:
+    image: postgres:17-alpine
+    container_name: bank_db
+    networks:
+      - backend-net
+#    ports:
+#      - "6541:5432"
+    environment:
+      - POSTGRES_DB=bank_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  discovery-server:
+    build: ./infra/discovery-server
+    image: discovery-server-image
+    container_name: discovery-server
+    networks:
+      - backend-net
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      timeout: 5s
+      interval: 20s
+      retries: 5
+
+  config-server:
+    build: ./infra/config-server
+    image: config-server-image
+    container_name: config-server
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+#    ports:
+#      - "8888:8888"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+
+  gateway-server:
+    build: ./infra/gateway-server
+    image: gateway-server-image
+    container_name: gateway-server
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+#    ports:
+#      - "8080:8080"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+
+  front:
+    build: ./core/front
+    image: front-image
+    container_name: front
+    networks:
+      - backend-net
+    environment:
+      - BACKEND_API_URL=http://gateway-server:8080
+    ports:
+      - "8081:8081"
+      - "9091:9091"
+
+  account-service:
+    build: ./core/account-service
+    image: account-service-image
+    container_name: account-service
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bank-db:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      config-server:
+        condition: service_healthy
+      bank-db:
+        condition: service_healthy
+
+  blocker-service:
+    build: ./core/blocker-service
+    image: blocker-service-image
+    container_name: blocker-service
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  cash-service:
+    build: ./core/cash-service
+    image: cash-service-image
+    container_name: cash-service
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bank-db:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      config-server:
+        condition: service_healthy
+      bank-db:
+        condition: service_healthy
+      bank_keycloak:
+        condition: service_started
+
+  exchange-generator-service:
+    build: ./core/exchange-generator-service
+    image: exchange-generator-service-image
+    container_name: exchange-generator-service
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  exchange-service:
+    build: ./core/exchange-service
+    image: exchange-service-image
+    container_name: exchange-service
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bank-db:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      config-server:
+        condition: service_healthy
+      bank-db:
+        condition: service_healthy
+
+  notification-service:
+    build: ./core/notification-service
+    image: notification-service-image
+    container_name: notification-service
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bank-db:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      config-server:
+        condition: service_healthy
+      bank-db:
+        condition: service_healthy
+
+  transfer-service:
+    build: ./core/transfer-service
+    image: transfer-service-image
+    container_name: transfer-service
+    networks:
+      - backend-net
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bank-db:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      config-server:
+        condition: service_healthy
+      bank-db:
+        condition: service_healthy
+      bank_keycloak:
+        condition: service_started

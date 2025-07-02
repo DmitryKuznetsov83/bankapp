@@ -1,8 +1,6 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: front
-  config:
-    import: "configserver:"
-  cloud:
-    config:
-      fail-fast: true

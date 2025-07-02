@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import ru.yandex.practicum.bank.common.dto.ApiErrorDto;
+import ru.yandex.practicum.bank.front.config.BackendProperties;
 import ru.yandex.practicum.bank.front.dto.user.CreateUserForm;
 import ru.yandex.practicum.bank.front.dto.user.UserDto;
 import ru.yandex.practicum.bank.front.mapper.UserMapper;
@@ -20,10 +21,12 @@ public class SignupController {
 
     private final RestTemplate internalRestTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final BackendProperties backendProperties;
 
-    public SignupController(RestTemplate internalRestTemplate, PasswordEncoder passwordEncoder) {
+    public SignupController(RestTemplate internalRestTemplate, PasswordEncoder passwordEncoder, BackendProperties backendProperties) {
         this.internalRestTemplate = internalRestTemplate;
         this.passwordEncoder = passwordEncoder;
+        this.backendProperties = backendProperties;
     }
 
     @GetMapping("/signup")
@@ -48,7 +51,7 @@ public class SignupController {
 
         try {
             internalRestTemplate
-                    .postForObject("http://localhost:8080/api/account-service/users", userDto, UserDto.class);
+                    .postForObject(backendProperties.getUrl() + "/api/account-service/users", userDto, UserDto.class);
             return "redirect:/login";
         } catch (HttpClientErrorException e) {
             ApiErrorDto apiErrorDto = e.getResponseBodyAs(ApiErrorDto.class);
