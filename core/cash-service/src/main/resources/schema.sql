@@ -1,0 +1,19 @@
+-- DROP
+-- DROP TABLE IF EXISTS cash.cash_transaction;
+-- DROP SCHEMA IF EXISTS cash;
+
+-- CREATE
+CREATE SCHEMA IF NOT EXISTS cash;
+
+CREATE TABLE IF NOT EXISTS cash.cash_transaction
+(
+    id UUID PRIMARY KEY,
+    status VARCHAR(7) NOT NULL,
+    comment VARCHAR(200),
+    user_login VARCHAR(16) NOT NULL,
+    currency VARCHAR(3) NOT NULL,
+    type VARCHAR(8) NOT NULL,
+    sum NUMERIC(15, 2) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
