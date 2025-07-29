@@ -1,0 +1,12 @@
+dependencies:
+- name: discovery-server
+  repository: file://charts/discovery-server
+  version: 1.0.0
+- name: config-server
+  repository: file://charts/config-server
+  version: 1.0.0
+- name: blocker-service
+  repository: file://charts/blocker-service
+  version: 1.0.0
+digest: sha256:89615e499a49a6851d1eb0b09eac06db7430f8ff2ead06324d5ba1e813d558d9
+generated: "2025-07-29T11:26:53.2628181+02:00"
