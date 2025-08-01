@@ -8,5 +8,8 @@ dependencies:
 - name: blocker-service
   repository: file://charts/blocker-service
   version: 1.0.0
-digest: sha256:89615e499a49a6851d1eb0b09eac06db7430f8ff2ead06324d5ba1e813d558d9
-generated: "2025-07-29T11:26:53.2628181+02:00"
+- name: notification-service
+  repository: file://charts/notification-service
+  version: 1.0.0
+digest: sha256:4010b9721c414c25ebe4483379b675294b48342cc724a982fda6ca263a600a8a
+generated: "2025-08-01T11:49:16.9637595+02:00"
