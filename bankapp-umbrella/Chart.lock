@@ -1,4 +1,7 @@
 dependencies:
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 12.1.0
 - name: discovery-server
   repository: file://charts/discovery-server
   version: 1.0.0
@@ -11,5 +14,8 @@ dependencies:
 - name: notification-service
   repository: file://charts/notification-service
   version: 1.0.0
-digest: sha256:4010b9721c414c25ebe4483379b675294b48342cc724a982fda6ca263a600a8a
-generated: "2025-08-01T11:49:16.9637595+02:00"
+- name: account-service
+  repository: file://charts/account-service
+  version: 1.0.0
+digest: sha256:f806f38c945614c21e1c1f109b168b14e5895235f9792d62f882da06d483d5c2
+generated: "2025-08-01T14:30:47.4613947+02:00"

@@ -6,6 +6,10 @@ version: 1.0.0
 appVersion: "1.0.0"
 
 dependencies:
+  - name: postgresql
+    repository: https://charts.bitnami.com/bitnami
+    version: "12.1.0"
+    alias: "bankapp-db"
   - name: discovery-server
     version: "1.0.0"
     repository: "file://charts/discovery-server"
@@ -18,3 +22,6 @@ dependencies:
   - name: notification-service
     version: "1.0.0"
     repository: "file://charts/notification-service"
+  - name: account-service
+    version: "1.0.0"
+    repository: "file://charts/account-service"

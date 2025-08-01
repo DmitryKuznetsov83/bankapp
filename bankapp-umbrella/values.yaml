@@ -1,0 +1,10 @@
+bankapp-db:
+  auth:
+    database: bankapp-db
+    username: bankapp
+    password: bankapp
+    postgresPassword: adminpass
+
+postgresql:
+  auth:
+    postgresPassword: bankapp
