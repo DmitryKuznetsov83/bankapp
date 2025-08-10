@@ -20,14 +20,13 @@ import java.util.*;
 @EnableScheduling
 public class ScheduledTaskService {
 
-    private final RestTemplate internalRestTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
     private final ExchangeGeneratorConfig exchangeGeneratorConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(ScheduledTaskService.class);
 
     @Autowired
-    public ScheduledTaskService(RestTemplate internalRestTemplate, ExchangeGeneratorConfig exchangeGeneratorConfig) {
-        this.internalRestTemplate = internalRestTemplate;
+    public ScheduledTaskService(ExchangeGeneratorConfig exchangeGeneratorConfig) {
         this.exchangeGeneratorConfig = exchangeGeneratorConfig;
     }
 
@@ -43,12 +42,12 @@ public class ScheduledTaskService {
 
 
         try {
-            internalRestTemplate
-                    .postForEntity("lb://api-gateway/api/exchange-service/rates", rates, Void.class);
+            restTemplate
+                    .postForEntity("http://bankapp-exchange-service:8080/rates", rates, Void.class);
         } catch (HttpClientErrorException e) {
-            logger.warn("Error while sending rate request" + e.getResponseBodyAsString());
+            logger.warn("Error while sending rate request" + e.getResponseBodyAsString(), e);
         } catch (Throwable e) {
-            logger.warn("Error while sending rate request" + e.getMessage());
+            logger.warn("Error while sending rate request" + e.getMessage(), e);
         }
 
     }

@@ -13,11 +13,10 @@ import java.util.List;
 @Service
 public class NotificationOutboxProcessor {
 
-    private final RestTemplate internalRestTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
     private final NotificationJpaRepository notificationJpaRepository;
 
-    public NotificationOutboxProcessor(RestTemplate internalRestTemplate, NotificationJpaRepository notificationJpaRepository) {
-        this.internalRestTemplate = internalRestTemplate;
+    public NotificationOutboxProcessor(NotificationJpaRepository notificationJpaRepository) {
         this.notificationJpaRepository = notificationJpaRepository;
     }
 
@@ -27,8 +26,8 @@ public class NotificationOutboxProcessor {
         List<NotificationDto> notificationsDto = notifications.stream().map(NotificationMapper.INSTANCE::toNotificationDto).toList();
 
         if (!notificationsDto.isEmpty()) {
-            internalRestTemplate
-                    .postForEntity("lb://api-gateway/api/notification-service/notifications", notificationsDto, Void.class);
+            restTemplate
+                    .postForEntity("http://bankapp-notification-service:8080/notifications", notificationsDto, Void.class);
             notificationJpaRepository.deleteAll(notifications);
         }
     }

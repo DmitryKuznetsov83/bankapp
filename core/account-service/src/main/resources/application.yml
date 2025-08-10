@@ -6,13 +6,3 @@ spring:
   cloud:
     config:
       fail-fast: true
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://bankapp-discovery-server:8761/eureka/
-  instance:
-    preferIpAddress: false
-    hostname: ${HOSTNAME}.${POD_NAMESPACE}.svc.cluster.local
-    instance-id: "${spring.application.name}:${random.value}"
-    leaseRenewalIntervalInSeconds: 1

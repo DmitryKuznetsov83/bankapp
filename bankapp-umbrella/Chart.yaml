@@ -10,30 +10,27 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     version: "12.1.0"
     alias: "bankapp-db"
-  - name: discovery-server
-    version: "1.0.0"
-    repository: "file://charts/discovery-server"
   - name: config-server
     version: "1.0.0"
     repository: "file://charts/config-server"
   - name: blocker-service
     version: "1.0.0"
     repository: "file://charts/blocker-service"
-#  - name: notification-service
-#    version: "1.0.0"
-#    repository: "file://charts/notification-service"
-#  - name: account-service
-#    version: "1.0.0"
-#    repository: "file://charts/account-service"
-#  - name: cash-service
-#    version: "1.0.0"
-#    repository: "file://charts/cash-service"
-#  - name: exchange-service
-#    version: "1.0.0"
-#    repository: "file://charts/exchange-service"
-#  - name: transfer-service
-#    version: "1.0.0"
-#    repository: "file://charts/transfer-service"
+  - name: notification-service
+    version: "1.0.0"
+    repository: "file://charts/notification-service"
+  - name: account-service
+    version: "1.0.0"
+    repository: "file://charts/account-service"
+  - name: cash-service
+    version: "1.0.0"
+    repository: "file://charts/cash-service"
+  - name: exchange-service
+    version: "1.0.0"
+    repository: "file://charts/exchange-service"
+  - name: transfer-service
+    version: "1.0.0"
+    repository: "file://charts/transfer-service"
   - name: exchange-generator-service
     version: "1.0.0"
     repository: "file://charts/exchange-generator-service"
