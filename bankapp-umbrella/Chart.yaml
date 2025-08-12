@@ -34,3 +34,6 @@ dependencies:
   - name: exchange-generator-service
     version: "1.0.0"
     repository: "file://charts/exchange-generator-service"
+  - name: front
+    version: "1.0.0"
+    repository: "file://charts/front"

@@ -26,5 +26,8 @@ dependencies:
 - name: exchange-generator-service
   repository: file://charts/exchange-generator-service
   version: 1.0.0
-digest: sha256:92501fb593b981a29bbf862553028f4c949fb47aa234db83b6d14f166062aaf5
-generated: "2025-08-07T21:06:35.8012057+02:00"
+- name: front
+  repository: file://charts/front
+  version: 1.0.0
+digest: sha256:9f23fadfdcb04afaf6752cdbdde8a29a4e77ef6fb1710a497185e8c82a26f67a
+generated: "2025-08-10T21:02:25.2920104+02:00"
