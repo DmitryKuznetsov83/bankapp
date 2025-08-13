@@ -20,6 +20,10 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /config/application.yml
+              subPath: application.yml
           env:
             - name: POD_NAMESPACE
               valueFrom:
@@ -31,3 +35,7 @@ spec:
               value: bankapp
             - name: SPRING_DATASOURCE_PASSWORD
               value: bankapp
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "account-service.fullname" . }}-config

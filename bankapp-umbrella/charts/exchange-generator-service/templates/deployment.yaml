@@ -20,8 +20,16 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /config/application.yml
+              subPath: application.yml
           env:
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "exchange-generator-service.fullname" . }}-config
