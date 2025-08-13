@@ -1,10 +1,17 @@
 bankapp-db:
   auth:
     database: bankapp-db
-    username: bankapp
-    password: bankapp
+    username: bankapp_user
+    password: bankapp_password
     postgresPassword: adminpass
 
 postgresql:
   auth:
     postgresPassword: bankapp
+
+global:
+  db:
+    user: bankapp_user
+    password:
+      secretName: bankapp-secret
+      secretKey: bankapp-db-password
