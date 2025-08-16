@@ -15,3 +15,5 @@ global:
     password:
       secretName: bankapp-secret
       secretKey: bankapp-db-password
+  image:
+    tag: "1"

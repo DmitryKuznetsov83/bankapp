@@ -67,7 +67,7 @@ public class CashTransactionServiceImpl implements CashTransactionService {
             CashTransactionDto cashTransactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
 
             ResponseEntity<Map<String, Boolean>> response = restTemplate.exchange(
-                    "http://blocker-service:8080/blockers/cash-transactions/validate",
+                    "http://bankapp-blocker-service:8080/blockers/cash-transactions/validate",
                     HttpMethod.POST,
                     new HttpEntity<>(cashTransactionDto),
                     new ParameterizedTypeReference<Map<String, Boolean>>() {}

@@ -10,9 +10,6 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     version: "12.1.0"
     alias: "bankapp-db"
-  - name: config-server
-    version: "1.0.0"
-    repository: "file://charts/config-server"
   - name: blocker-service
     version: "1.0.0"
     repository: "file://charts/blocker-service"
