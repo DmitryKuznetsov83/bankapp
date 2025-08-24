@@ -30,14 +30,12 @@ public class CashTransactionServiceImpl implements CashTransactionService {
 
     private static final Logger log = LoggerFactory.getLogger(CashTransactionServiceImpl.class);
 
-    private final RestTemplate internalRestTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
     private final CashTransactionJpaRepository cashTransactionJpaRepository;
     private final NotificationSender notificationSender;
 
-    public CashTransactionServiceImpl(RestTemplate internalRestTemplate,
-                                      CashTransactionJpaRepository cashTransactionJpaRepository,
+    public CashTransactionServiceImpl(CashTransactionJpaRepository cashTransactionJpaRepository,
                                       NotificationSender notificationSender) {
-        this.internalRestTemplate = internalRestTemplate;
         this.cashTransactionJpaRepository = cashTransactionJpaRepository;
         this.notificationSender = notificationSender;
     }
@@ -68,8 +66,8 @@ public class CashTransactionServiceImpl implements CashTransactionService {
         try {
             CashTransactionDto cashTransactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
 
-            ResponseEntity<Map<String, Boolean>> response = internalRestTemplate.exchange(
-                    "lb://api-gateway/api/blocker-service/blockers/cash-transactions/validate",
+            ResponseEntity<Map<String, Boolean>> response = restTemplate.exchange(
+                    "http://bankapp-blocker-service:8080/blockers/cash-transactions/validate",
                     HttpMethod.POST,
                     new HttpEntity<>(cashTransactionDto),
                     new ParameterizedTypeReference<Map<String, Boolean>>() {}
@@ -89,8 +87,8 @@ public class CashTransactionServiceImpl implements CashTransactionService {
     private CashTransaction checkBalance(CashTransaction transaction) {
         try {
             CashTransactionDto cashTransactionDto = CashTransactionMapper.INSTANCE.toCashTransactionDto(transaction);
-            internalRestTemplate
-                    .postForObject("lb://api-gateway/api/account-service/transactions/cash-transactions/validate", cashTransactionDto, Void.class);
+            restTemplate
+                    .postForObject("http://bankapp-account-service:8080/transactions/cash-transactions/validate", cashTransactionDto, Void.class);
             transaction = updateTransactionStatus(transaction, SUCCESS, null);
             notificationSender.send(transaction.getUserLogin(), INFO, "Успешное снятие средств");
         } catch (HttpClientErrorException e) {

@@ -6,7 +6,7 @@
     <title>Корзина товаров</title>
     <script language="JavaScript">
         setInterval(() => {
-            fetch('http://localhost:8080/api/exchange-service/rates')
+            fetch('/api/exchange/rates')
                 .then(response => response.json())
                 .then(json => {
                     var table = '<table style="width:100%;margin-left:auto;margin-right:auto;border-radius:2%;padding:10px;background-color:whitesmoke;">';

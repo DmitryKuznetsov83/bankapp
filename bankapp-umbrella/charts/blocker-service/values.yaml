@@ -1,0 +1,9 @@
+replicaCount: 1
+
+image:
+  repository: blocker-service
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080

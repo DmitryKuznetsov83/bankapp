@@ -22,6 +22,7 @@
         <module>notification-service</module>
         <module>transfer-service</module>
         <module>common-library</module>
+        <module>notification-starter</module>
     </modules>
 
 </project>

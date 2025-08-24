@@ -35,12 +35,11 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
 
     private static final Logger log = LoggerFactory.getLogger(TransferTransactionServiceImpl.class);
 
-    private final RestTemplate internalRestTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
     private final TransferTransactionJpaRepository transferTransactionJpaRepository;
     private final NotificationSender notificationSender;
 
-    public TransferTransactionServiceImpl(RestTemplate internalRestTemplate, TransferTransactionJpaRepository transferTransactionJpaRepository, NotificationSender notificationSender) {
-        this.internalRestTemplate = internalRestTemplate;
+    public TransferTransactionServiceImpl(TransferTransactionJpaRepository transferTransactionJpaRepository, NotificationSender notificationSender) {
         this.transferTransactionJpaRepository = transferTransactionJpaRepository;
         this.notificationSender = notificationSender;
     }
@@ -78,12 +77,12 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
         }
 
         try {
-            String url = UriComponentsBuilder.fromUriString("lb://api-gateway/api/exchange-service/rates/relative")
+            String url = UriComponentsBuilder.fromUriString("http://bankapp-exchange-service:8080/rates/relative")
                     .queryParam("fromCurrency", transaction.getFromCurrency())
                     .queryParam("toCurrency", transaction.getToCurrency())
                     .toUriString();
 
-            BigDecimal toSum = internalRestTemplate
+            BigDecimal toSum = restTemplate
                     .getForObject(url, RelativeExchangeRateDto.class)
                     .getRate()
                     .multiply(transaction.getFromSum()).setScale(0, RoundingMode.UP);
@@ -107,8 +106,8 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
         try {
             TransferTransactionDto transferTransactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
 
-            ResponseEntity<Map<String, Boolean>> response = internalRestTemplate.exchange(
-                    "lb://api-gateway/api/blocker-service/blockers/transfer-transactions/validate",
+            ResponseEntity<Map<String, Boolean>> response = restTemplate.exchange(
+                    "http://bankapp-blocker-service:8080/blockers/transfer-transactions/validate",
                     HttpMethod.POST,
                     new HttpEntity<>(transferTransactionDto),
                     new ParameterizedTypeReference<Map<String, Boolean>>() {}
@@ -128,8 +127,8 @@ public class TransferTransactionServiceImpl implements TransferTransactionServic
     private TransferTransaction checkBalance(TransferTransaction transaction) {
         try {
             TransferTransactionDto transferTransactionDto = TransferTransactionMapper.INSTANCE.toTransferTransactionDto(transaction);
-            internalRestTemplate
-                    .postForEntity("lb://api-gateway/api/account-service/transactions/transfer-transactions/validate", transferTransactionDto, Void.class);
+            restTemplate
+                    .postForEntity("http://bankapp-account-service:8080/transactions/transfer-transactions/validate", transferTransactionDto, Void.class);
             transaction = updateTransactionStatus(transaction, SUCCESS, null);
             notificationSender.send(transaction.getFromLogin(), INFO, "Успешный перевод средств");
         } catch (HttpClientErrorException e) {
